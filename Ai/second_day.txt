@@ -1,0 +1,366 @@
+📑 MASTER BLUEPRINT: GUN MAYHEM CLONE (GODOT 4 + C#)📁 1. Main Scene Hierarchy Layout (node_2d.tscn)Configure your node tree exactly like this in the Scene panel:textMainGame (Node2D)
+├── CanvasLayer (Background Layer)
+│   └── ColorRect (Backdrop art)
+├── Player (CharacterBody2D) -> [Player.cs attached]
+│   ├── CollisionShape2D (RectangleShape2D - Layer 2, Mask 1)
+│   ├── Body (Polygon2D)
+│   ├── head (Polygon2D)
+│   └── GunPivot (Marker2D)
+│       └── Weapon (Polygon2D) -> [Weapon.cs attached]
+│           ├── Muzzle (Marker2D)
+│           └── HitScanner (RayCast2D - Mask 2 Enabled, Mask 1 Disabled)
+├── Player2 (CharacterBody2D) -> [Player.cs attached]
+│   ├── CollisionShape2D (RectangleShape2D - Layer 2, Mask 1)
+│   ├── Body (Polygon2D)
+│   ├── head (Polygon2D)
+│   └── GunPivot (Marker2D)
+│       └── Weapon (Polygon2D) -> [Weapon.cs attached]
+│           ├── Muzzle (Marker2D)
+│           └── HitScanner (RayCast2D - Mask 2 Enabled, Mask 1 Disabled)
+├── Floor (StaticBody2D) -> [One-Way Collision: OFF, Layer 1]
+│   ├── CollisionShape2D
+│   └── Sprite2D
+├── MidLeftPlatform (StaticBody2D) -> [One-Way Collision: ON, Layer 1]
+│   ├── CollisionShape2D
+│   └── Sprite2D
+├── MidRightPlatform (StaticBody2D) -> [One-Way Collision: ON, Layer 1]
+│   ├── CollisionShape2D
+│   └── Sprite2D
+├── DeathZone (Area2D) -> [DeathZone.cs attached]
+│   └── CollisionShape2D (WorldBoundaryShape2D)
+└── DynamicCamera (Camera2D) -> [DynamicCamera.cs attached]
+Use code with caution.⚙️ 2. Core Physics Project ConfigurationCollision Matrix Rules: Environment/Platforms live on Layer 1. Both Players exist on Layer 2 and look down at Mask 1. This prevents players from bumping into each other while allowing them to stand on platforms.Input Action Map Layout:Player 1 (p1_): p1_move_left (A), p1_move_right (D), p1_jump (W), p1_move_down (S), p1_shoot (J).Player 2 (p2_): p2_move_left (Left), p2_move_right (Right), p2_jump (Up), p2_move_down (Down), p2_shoot (Numpad Key).💻 3. Source Code FilesFile 1: Player.csHandles advanced variable jumping mechanics, snappy last-input priority movement, platform drop-through logic, and independent decay knockback calculation.csharpusing Godot;
+using System;
+
+namespace GunMayhemClone;
+
+public partial class Player : CharacterBody2D
+{
+    [ExportGroup("Setup")]
+    [Export] public string InputPrefix = "p1_"; 
+
+    [ExportGroup("Horizontal Movement")]
+    [Export] public float Speed = 450.0f;
+
+    [ExportGroup("Advanced Jump Settings")]
+    [Export] public float MaxJumpHeight = 150.0f; 
+    [Export] public float MinJumpHeight = 40.0f;  
+    [Export] public float TimeToPeak = 0.4f;      
+    [Export] public float TimeToFall = 0.3f;      
+    [Export] public int MaxJumps = 2;
+
+    private string _actionLeft;
+    private string _actionRight;
+    private string _actionJump;
+    private string _actionDown;
+    private string _actionShoot;
+
+    private float _jumpVelocity;
+    private float _minJumpVelocity;
+    private float _gravity;
+    private float _fallGravity;
+    private int _jumpCount = 0;
+
+    private Vector2 _knockbackVelocity = Vector2.Zero;
+    private float _lastValidDirection = 1.0f;
+
+    private Polygon2D _body;
+    private Polygon2D _head;
+    private Marker2D _gunPivot;
+    private Weapon _currentWeapon;
+
+    public override void _Ready()
+    {
+        _body = GetNodeOrNull<Polygon2D>("Body");
+        _head = GetNodeOrNull<Polygon2D>("head");
+        _gunPivot = GetNodeOrNull<Marker2D>("GunPivot");
+        _currentWeapon = GetNodeOrNull<Weapon>("GunPivot/Weapon");
+
+        _actionLeft = InputPrefix + "move_left";
+        _actionRight = InputPrefix + "move_right";
+        _actionJump = InputPrefix + "jump";
+        _actionDown = InputPrefix + "move_down";
+        _actionShoot = InputPrefix + "shoot";
+
+        CalculateJumpParameters();
+        this.AddToGroup("players");
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        Vector2 velocity = Velocity;
+
+        if (!IsOnFloor())
+        {
+            float currentGravity = (velocity.Y > 0) ? _fallGravity : _gravity;
+            velocity.Y += currentGravity * (float)delta;
+        }
+        else
+        {
+            _jumpCount = 0; 
+        }
+
+        if (Input.IsActionJustPressed(_actionJump) && (IsOnFloor() || _jumpCount < MaxJumps))
+        {
+            velocity.Y = _jumpVelocity;
+            _jumpCount++;
+        }
+        else if (Input.IsActionJustReleased(_actionJump) && velocity.Y < _minJumpVelocity)
+        {
+            velocity.Y = _minJumpVelocity;
+        }
+
+        if (IsOnFloor() && Input.IsActionJustPressed(_actionDown))
+        {
+            DropThroughPlatform();
+        }
+
+        float direction = 0.0f;
+        bool pressingLeft = Input.IsActionPressed(_actionLeft);
+        bool pressingRight = Input.IsActionPressed(_actionRight);
+
+        if (pressingLeft && pressingRight)
+        {
+            if (Input.IsActionJustPressed(_actionLeft)) direction = -1.0f;
+            else if (Input.IsActionJustPressed(_actionRight)) direction = 1.0f;
+            else direction = _lastValidDirection;
+        }
+        else if (pressingLeft) direction = -1.0f;
+        else if (pressingRight) direction = 1.0f;
+
+        float targetWalkingVelocity = 0.0f;
+        if (direction != 0)
+        {
+            targetWalkingVelocity = direction * Speed;
+            _lastValidDirection = direction;
+            FlipCharacter(direction);
+        }
+        else
+        {
+            targetWalkingVelocity = Mathf.MoveToward(velocity.X - _knockbackVelocity.X, 0, Speed * 0.25f);
+        }
+
+        _knockbackVelocity.X = Mathf.MoveToward(_knockbackVelocity.X, 0.0f, 1200.0f * (float)delta);
+        _knockbackVelocity.Y = Mathf.MoveToward(_knockbackVelocity.Y, 0.0f, 1200.0f * (float)delta);
+
+        velocity.X = targetWalkingVelocity + _knockbackVelocity.X;
+        
+        if (Mathf.Abs(_knockbackVelocity.Y) > 0.1f)
+        {
+            velocity.Y += _knockbackVelocity.Y;
+            _knockbackVelocity.Y = 0;
+        }
+
+        if (Input.IsActionPressed(_actionShoot))
+        {
+            if (_currentWeapon != null) _currentWeapon.PullTrigger(_lastValidDirection);
+        }
+
+        Velocity = velocity;
+        MoveAndSlide();
+    }
+
+    public void ApplyKnockback(float horizontalDirection, float force)
+    {
+        Vector2 knockbackVector = new Vector2(horizontalDirection, -0.3f).Normalized();
+        _knockbackVelocity += knockbackVector * force;
+    }
+
+    private async void DropThroughPlatform()
+    {
+        this.SetCollisionMaskValue(1, false);
+        for (int i = 0; i < 6; i++) await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        this.SetCollisionMaskValue(1, true);
+    }
+
+    private void CalculateJumpParameters()
+    {
+        _gravity = (2.0f * MaxJumpHeight) / Mathf.Pow(TimeToPeak, 2.0f);
+        _fallGravity = (2.0f * MaxJumpHeight) / Mathf.Pow(TimeToFall, 2.0f);
+        _jumpVelocity = -((2.0f * MaxJumpHeight) / TimeToPeak);
+        _minJumpVelocity = -Mathf.Sqrt(2.0f * _gravity * MinJumpHeight);
+    }
+
+    private void FlipCharacter(float direction)
+    {
+        bool isFlipped = direction < 0;
+        if (_body != null) _body.Scale = new Vector2(isFlipped ? -1.0f : 1.0f, 1.0f);
+        if (_head != null) _head.Scale = new Vector2(isFlipped ? -1.0f : 1.0f, 1.0f);
+        if (_gunPivot != null) _gunPivot.Scale = new Vector2(isFlipped ? -1.0f : 1.0f, 1.0f);
+    }
+}
+Use code with caution.File 2: Weapon.csModular hitscan controller with continuous automatic cooling and automatic self-collision ignore rules.csharpusing Godot;
+using System;
+
+namespace GunMayhemClone;
+
+public partial class Weapon : Polygon2D
+{
+    [ExportGroup("Weapon Configurations")]
+    [Export] public float FireRateCooldown = 0.2f; 
+    [Export] public float KnockbackForce = 350.0f;  
+    [Export] public PackedScene VisualTracerScene;
+
+    private RayCast2D _hitScanner;
+    private Marker2D _muzzle;
+    private float _cooldownTimer = 0.0f;
+
+    public override void _Ready()
+    {
+        _hitScanner = GetNodeOrNull<RayCast2D>("HitScanner");
+        _muzzle = GetNodeOrNull<Marker2D>("Muzzle");
+
+        CharacterBody2D myPlayer = GetNodeOrNull<CharacterBody2D>("../..");
+        if (_hitScanner != null && myPlayer != null) _hitScanner.AddException(myPlayer);
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_cooldownTimer > 0) _cooldownTimer -= (float)delta;
+    }
+
+    public void PullTrigger(float facingDirection)
+    {
+        if (_cooldownTimer > 0 || _hitScanner == null || _muzzle == null) return;
+
+        _cooldownTimer = FireRateCooldown;
+        _hitScanner.ForceRaycastUpdate();
+
+        float visualFlyDistance = 1500.0f;
+
+        if (_hitScanner.IsColliding())
+        {
+            Vector2 collisionPoint = _hitScanner.GetCollisionPoint();
+            visualFlyDistance = _muzzle.GlobalPosition.DistanceTo(collisionPoint);
+
+            GodotObject collider = _hitScanner.GetCollider();
+            if (collider is Player hitPlayer)
+            {
+                hitPlayer.ApplyKnockback(facingDirection, KnockbackForce);
+            }
+        }
+
+        if (VisualTracerScene != null)
+        {
+            VisualTracer tracerInstance = VisualTracerScene.Instantiate<VisualTracer>();
+            tracerInstance.GlobalPosition = _muzzle.GlobalPosition;
+            tracerInstance.Direction = new Vector2(facingDirection, 0.0f);
+            tracerInstance.MaxDistance = visualFlyDistance;
+            GetTree().CurrentScene.AddChild(tracerInstance);
+        }
+    }
+}
+Use code with caution.File 3: VisualTracer.cs (Attached to visual_tracer.tscn)Handles the standalone, decorative, high-speed tracer trail that deletes itself on contact.csharpusing Godot;
+using System;
+
+namespace GunMayhemClone;
+
+public partial class VisualTracer : Line2D
+{
+    [Export] public float Speed = 2000.0f;
+    [Export] public float MaxDistance = 1500.0f;
+
+    public Vector2 Direction = Vector2.Right;
+    private Vector2 _startPosition;
+
+    public override void _Ready()
+    {
+        _startPosition = GlobalPosition;
+        TopLevel = true; 
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        GlobalPosition += Direction * Speed * (float)delta;
+        if (GlobalPosition.DistanceTo(_startPosition) >= MaxDistance) QueueFree();
+    }
+}
+Use code with caution.File 4: DynamicCamera.csMulti-target bounding box camera tracking that scales and centers based on alive group nodes.csharpusing Godot;
+using System;
+using System.Collections.Generic;
+
+namespace GunMayhemClone;
+
+public partial class DynamicCamera : Camera2D
+{
+    [Export] public float SmoothSpeed = 6.0f;     
+    [Export] public float MinZoom = 0.35f;         
+    [Export] public float MaxZoom = 0.8f;          
+    [Export] public float ZoomMargin = 300.0f;     
+
+    private List<Node2D> _activeTargets = new List<Node2D>();
+    private Vector2 _screenSize;
+
+    public override void _Ready() => _screenSize = GetViewportRect().Size;
+
+    public override void _PhysicsProcess(double delta)
+    {
+        FindActivePlayers();
+        if (_activeTargets.Count == 0) return;
+
+        Position = Position.Lerp(GetCenterPoint(), (float)delta * SmoothSpeed);
+        float idealZoom = GetRequiredZoom();
+        Zoom = Zoom.Lerp(new Vector2(idealZoom, idealZoom), (float)delta * SmoothSpeed);
+    }
+
+    private void FindActivePlayers()
+    {
+        _activeTargets.Clear();
+        foreach (Node node in GetTree().GetNodesInGroup("players"))
+        {
+            if (node is Node2D n2D && GodotObject.IsInstanceValid(n2D)) _activeTargets.Add(n2D);
+        }
+    }
+
+    private Vector2 GetCenterPoint()
+    {
+        if (_activeTargets.Count == 1) return _activeTargets[0].GlobalPosition;
+        var bounds = new Rect2(_activeTargets[0].GlobalPosition, Vector2.Zero);
+        foreach (var t in _activeTargets) bounds = bounds.Expand(t.GlobalPosition);
+        return bounds.GetCenter();
+    }
+
+    private float GetRequiredZoom()
+    {
+        if (_activeTargets.Count <= 1) return MaxZoom;
+        var bounds = new Rect2(_activeTargets[0].GlobalPosition, Vector2.Zero);
+        foreach (var t in _activeTargets) bounds = bounds.Expand(t.GlobalPosition);
+
+        float zoomX = _screenSize.X / (bounds.Size.X + ZoomMargin);
+        float zoomY = _screenSize.Y / (bounds.Size.Y + ZoomMargin);
+        return Mathf.Clamp(Mathf.Min(zoomX, zoomY), MinZoom, MaxZoom);
+    }
+}
+Use code with caution.File 5: DeathZone.csTracks out-of-bound drops, unregisters targets from active tracking loops, and triggers respawns.csharpusing Godot;
+using System;
+
+namespace GunMayhemClone;
+
+public partial class DeathZone : Area2D
+{
+    [Export] public float RespawnYPosition = 100.0f;
+    [Export] public float RespawnDelaySeconds = 1.5f;
+
+    public override void _Ready() => this.BodyEntered += OnBodyEntered;
+
+    private void OnBodyEntered(Node2D body)
+    {
+        if (body is Player p) HandlePlayerDeath(p);
+    }
+
+    private async void HandlePlayerDeath(Player p)
+    {
+        if (p.IsInGroup("players")) p.RemoveFromGroup("players");
+        p.Visible = false;
+        p.ProcessMode = ProcessModeEnum.Disabled;
+
+        await ToSignal(GetTree().CreateTimer(RespawnDelaySeconds), SceneTreeTimer.SignalName.Timeout);
+
+        p.GlobalPosition = new Vector2(500.0f, RespawnYPosition);
+        p.Velocity = Vector2.Zero;
+        p.Visible = true;
+        p.ProcessMode = ProcessModeEnum.Inherit;
+        p.AddToGroup("players");
+    }
+}
+Use code with caution.Whenever you load this project up into a new AI session, just drop this file right in! When you are ready to keep expanding, let me know what system we should configure next:Add a small screenshake effect to the DynamicCamera when a gun firesAdd a muzzle flash flare animation to the gun tip when firing

@@ -1,0 +1,193 @@
+📑 MASTER BLUEPRINT: GUN MAYHEM CLONE (GODOT 4 + C#)📁 1. The Exact Scene Hierarchy Panel LayoutYour node_2d.tscn scene tree is perfectly configured like this:textMainGame (Node2D)
+├── CanvasLayer (Background Layer)
+│   └── ColorRect (Blue backdrop box)
+├── Player (CharacterBody2D) -> [Player.cs attached here]
+│   ├── CollisionShape2D (RectangleShape2D: Width 36, Height 44)
+│   ├── Body (Polygon2D - Black Torso shape)
+│   ├── head (Polygon2D - Blue Octagon circle shape)
+│   └── GunPivot (Marker2D)
+├── Floor (StaticBody2D) -> [One-Way Collision: OFF]
+│   ├── CollisionShape2D
+│   └── Sprite2D
+├── MidLeftPlatform (StaticBody2D) -> [One-Way Collision: ON]
+│   ├── CollisionShape2D
+│   └── Sprite2D
+├── MidRightPlatform (StaticBody2D) -> [One-Way Collision: ON]
+│   ├── CollisionShape2D
+│   └── Sprite2D
+└── DynamicCamera (Camera2D) -> [DynamicCamera.cs attached here]
+Use code with caution.💻 2. Player Movement Script (Player.cs)This handles snappy falling multipliers, double-jumping, running, and mirroring your custom geometric polygon shapes left or right.csharpusing Godot;
+using System;
+
+namespace GunMayhemClone;
+
+public partial class Player : CharacterBody2D
+{
+    // Physics parameters editable inside your inspector
+    [Export] public float Speed = 450.0f;
+    [Export] public float JumpVelocity = -650.0f;
+    [Export] public int MaxJumps = 2;
+    [Export] public float FallGravityMultiplier = 1.5f;
+
+    // State Tracking
+    private int _jumpCount = 0;
+    private float _defaultGravity = ProjectSettings.GetSetting("physics/2d/default_gravity").AsSingle();
+
+    // Direct Geometric Node References
+    private Polygon2D _body;
+    private Polygon2D _head;
+    private Marker2D _gunPivot;
+
+    public override void _Ready()
+    {
+        _body = GetNodeOrNull<Polygon2D>("Body");
+        _head = GetNodeOrNull<Polygon2D>("head");
+        _gunPivot = GetNodeOrNull<Marker2D>("GunPivot");
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        Vector2 velocity = Velocity;
+
+        // 1. Gravity Math
+        if (!IsOnFloor())
+        {
+            float currentGravity = _defaultGravity;
+            if (velocity.Y > 0)
+            {
+                currentGravity *= FallGravityMultiplier; // Fast snappy falling
+            }
+            velocity.Y += currentGravity * (float)delta;
+        }
+        else
+        {
+            _jumpCount = 0; // Reset jump on platform landing
+        }
+
+        // 2. Jump Input Handling
+        if (Input.IsActionJustPressed("jump") && (IsOnFloor() || _jumpCount < MaxJumps))
+        {
+            velocity.Y = JumpVelocity;
+            _jumpCount++;
+        }
+
+        // 3. Horizontal Movement Input
+        float direction = Input.GetAxis("move_left", "move_right");
+
+        if (direction != 0)
+        {
+            velocity.X = direction * Speed;
+            FlipCharacter(direction);
+        }
+        else
+        {
+            // Smoothly slow down (Friction)
+            velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed * 0.25f);
+        }
+
+        Velocity = velocity;
+        MoveAndSlide();
+    }
+
+    // Mirrors your geometric player shapes based on movement keys
+    private void FlipCharacter(float direction)
+    {
+        bool isFlipped = direction < 0;
+
+        if (_body != null)
+        {
+            Vector2 bodyScale = _body.Scale;
+            bodyScale.X = isFlipped ? -1.0f : 1.0f;
+            _body.Scale = bodyScale;
+        }
+
+        if (_head != null)
+        {
+            Vector2 headScale = _head.Scale;
+            headScale.X = isFlipped ? -1.0f : 1.0f;
+            _head.Scale = headScale;
+        }
+
+        if (_gunPivot != null)
+        {
+            Vector2 pivotScale = _gunPivot.Scale;
+            pivotScale.X = isFlipped ? -1.0f : 1.0f;
+            _gunPivot.Scale = pivotScale;
+        }
+    }
+}
+Use code with caution.💻 3. Dynamic Camera Script (DynamicCamera.cs)This automatically centers on your player and handles wide-angle zooming scales so your arena layout feels big and cinematic.csharpusing Godot;
+using System;
+using System.Collections.Generic;
+
+namespace GunMayhemClone;
+
+public partial class DynamicCamera : Camera2D
+{
+    [Export] public float SmoothSpeed = 6.0f;     
+    [Export] public float MinZoom = 0.5f;          
+    [Export] public float MaxZoom = 0.6f;          // Kept at 0.6f to keep solo testing zoomed out wide!
+    [Export] public float ZoomMargin = 250.0f;     
+
+    public List<Node2D> Targets = new List<Node2D>();
+    private Vector2 _screenSize;
+
+    public override void _Ready()
+    {
+        _screenSize = GetViewportRect().Size;
+
+        // Auto-links to the player sibling node
+        Node2D player = GetNodeOrNull<Node2D>("../Player");
+        if (player != null)
+        {
+            Targets.Add(player);
+        }
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        if (Targets == null || Targets.Count == 0) return;
+
+        // 1. Smoothly transition position to targets midpoint center
+        Vector2 targetCenter = GetCenterPoint();
+        Position = Position.Lerp(targetCenter, (float)delta * SmoothSpeed);
+
+        // 2. Smoothly track camera lens zoom sizes
+        float idealZoom = GetRequiredZoom();
+        Vector2 targetZoom = new Vector2(idealZoom, idealZoom);
+        Zoom = Zoom.Lerp(targetZoom, (float)delta * SmoothSpeed);
+    }
+
+    private Vector2 GetCenterPoint()
+    {
+        if (Targets.Count == 1) return Targets[0].GlobalPosition;
+
+        var bounds = new Rect2(Targets[0].GlobalPosition, Vector2.Zero);
+        foreach (var target in Targets)
+        {
+            bounds = bounds.Expand(target.GlobalPosition);
+        }
+        return bounds.GetCenter();
+    }
+
+    private float GetRequiredZoom()
+    {
+        if (Targets.Count <= 1) return MaxZoom;
+
+        var bounds = new Rect2(Targets[0].GlobalPosition, Vector2.Zero);
+        foreach (var target in Targets)
+        {
+            bounds = bounds.Expand(target.GlobalPosition);
+        }
+
+        float widthWithMargin = bounds.Size.X + ZoomMargin;
+        float heightWithMargin = bounds.Size.Y + ZoomMargin;
+
+        float zoomX = _screenSize.X / widthWithMargin;
+        float zoomY = _screenSize.Y / heightWithMargin;
+
+        float optimalZoom = Mathf.Min(zoomX, zoomY);
+        return Mathf.Clamp(optimalZoom, MinZoom, MaxZoom);
+    }
+}
+Use code with caution.Great work pushing through the setup today! Save this text snippet somewhere safe. Tomorrow, whenever you are ready, paste this document right back here and we will choose our next task:
