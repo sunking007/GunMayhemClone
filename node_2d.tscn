@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://tef8ljvo5qr8" path="res://ScriptsC#/DynamicCamera.cs" id="3_epypp"]
 [ext_resource type="Script" uid="uid://dn2d7mgw6rsfw" path="res://ScriptsC#/Weapon.cs" id="3_q6r6c"]
 [ext_resource type="Script" uid="uid://ovd1cu6o08ps" path="res://ScriptsC#/DeathZone.cs" id="4_0hol4"]
-[ext_resource type="PackedScene" uid="uid://bc3fsxi0mai0a" path="res://visual_tracer.tscn" id="4_kdubu"]
+[ext_resource type="PackedScene" uid="uid://bn67etcl3wspb" path="res://bullet.tscn" id="4_kdubu"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_epypp"]
 size = Vector2(19, 63)
@@ -71,7 +71,7 @@ scale = Vector2(1.83, 1.83)
 color = Color(0.9568688, 0.090101264, 0.5991672, 1)
 polygon = PackedVector2Array(19, 8, 19, 10, 21, 11, 18, 16, 22, 17, 24, 13, 25, 12, 29.256294, 12.000002, 34, 12, 34, 10, 35, 10, 35, 8, 28.72963, 7.999998)
 script = ExtResource("3_q6r6c")
-VisualTracerScene = ExtResource("4_kdubu")
+BulletScene = ExtResource("4_kdubu")
 
 [node name="Muzzle" type="Marker2D" parent="Player/GunPivot/Weapon" unique_id=1728153408]
 position = Vector2(25.546448, 11.825136)
@@ -94,7 +94,7 @@ polygon = PackedVector2Array(0, -32, 12, -26, 16, -14, 12, -2, 0, 4, -12, -2, -1
 polygon = PackedVector2Array(-18, 0, 18, 0, 10, 36, -10, 36)
 
 [node name="Player2" type="CharacterBody2D" parent="." unique_id=2130670031]
-position = Vector2(200, 0)
+position = Vector2(500, 0)
 collision_layer = 2
 script = ExtResource("2_0e48y")
 InputPrefix = "p2_"
@@ -116,7 +116,7 @@ scale = Vector2(1.83, 1.83)
 color = Color(0.9568688, 0.090101264, 0.5991672, 1)
 polygon = PackedVector2Array(19, 8, 19, 10, 21, 11, 18, 16, 22, 17, 24, 13, 25, 12, 29.256294, 12.000002, 34, 12, 34, 10, 35, 10, 35, 8, 28.72963, 7.999998)
 script = ExtResource("3_q6r6c")
-VisualTracerScene = ExtResource("4_kdubu")
+BulletScene = ExtResource("4_kdubu")
 
 [node name="Muzzle" type="Marker2D" parent="Player2/GunPivot/Weapon" unique_id=1767863569]
 position = Vector2(25.546448, 11.825136)
@@ -181,6 +181,8 @@ position = Vector2(170, 156)
 script = ExtResource("3_epypp")
 
 [node name="DeathZone" type="Area2D" parent="." unique_id=1187218831]
+collision_layer = 0
+collision_mask = 2
 script = ExtResource("4_0hol4")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DeathZone" unique_id=453025525]

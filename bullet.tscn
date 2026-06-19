@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://bn67etcl3wspb"]
+
+[ext_resource type="Script" uid="uid://bkf1cnp2nw2ns" path="res://ScriptsC#/Bullet.cs" id="1_v7oki"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_v7oki"]
+size = Vector2(6, 5)
+
+[node name="Bullet" type="CharacterBody2D" unique_id=372578573]
+collision_layer = 0
+collision_mask = 3
+script = ExtResource("1_v7oki")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1946568444]
+position = Vector2(-3, -1)
+shape = SubResource("RectangleShape2D_v7oki")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1596738039]
+offset_left = -30.0
+offset_top = -4.0
+offset_bottom = 2.0
+color = Color(1, 1, 0, 1)
