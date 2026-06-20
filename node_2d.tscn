@@ -1,11 +1,32 @@
 [gd_scene format=3 uid="uid://p1n5aent04f7"]
 
-[ext_resource type="Texture2D" uid="uid://1k7uov8snliq" path="res://Assests/bg.png" id="1_0hol4"]
+[ext_resource type="Texture2D" uid="uid://cvocwt2fsw6re" path="res://Map/back.jpg" id="1_ir8iy"]
 [ext_resource type="Script" uid="uid://2js2qjo8mfin" path="res://ScriptsC#/Player.cs" id="2_0e48y"]
+[ext_resource type="Texture2D" uid="uid://bbeoj6gv5fqyh" path="res://Map/1.png" id="2_hqns4"]
 [ext_resource type="Script" uid="uid://tef8ljvo5qr8" path="res://ScriptsC#/DynamicCamera.cs" id="3_epypp"]
 [ext_resource type="Script" uid="uid://dn2d7mgw6rsfw" path="res://ScriptsC#/Weapon.cs" id="3_q6r6c"]
+[ext_resource type="Texture2D" uid="uid://bl0vr5mygustm" path="res://Map/plt1.png" id="3_x0ka3"]
+[ext_resource type="Texture2D" uid="uid://dops5bjyql7la" path="res://Map/plt2.png" id="4_0h7mo"]
 [ext_resource type="Script" uid="uid://ovd1cu6o08ps" path="res://ScriptsC#/DeathZone.cs" id="4_0hol4"]
 [ext_resource type="PackedScene" uid="uid://bn67etcl3wspb" path="res://bullet.tscn" id="4_kdubu"]
+[ext_resource type="Texture2D" uid="uid://c3vgfb7b37ge" path="res://Map/plt3.png" id="5_x0ka3"]
+[ext_resource type="Texture2D" uid="uid://ch58ow4v16py7" path="res://Map/plt4.png" id="6_0h7mo"]
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_ta5nu"]
+a = Vector2(251, -44)
+b = Vector2(-250, -44)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_flf07"]
+a = Vector2(99, -47)
+b = Vector2(-102, -47)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_d2bti"]
+a = Vector2(205, -50)
+b = Vector2(-199, -50)
+
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_nr8wp"]
+a = Vector2(147, -69)
+b = Vector2(-144, -69)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_epypp"]
 size = Vector2(19, 63)
@@ -13,49 +34,102 @@ size = Vector2(19, 63)
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_epypp"]
 load_path = "res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex"
 
-[sub_resource type="SegmentShape2D" id="SegmentShape2D_epypp"]
-a = Vector2(420, 29)
-b = Vector2(8, 29)
-
-[sub_resource type="SegmentShape2D" id="SegmentShape2D_0hol4"]
-a = Vector2(561, 28)
-b = Vector2(7, 27)
-
-[sub_resource type="SegmentShape2D" id="SegmentShape2D_q6r6c"]
-a = Vector2(556, 15)
-b = Vector2(3, 15)
-
-[sub_resource type="SegmentShape2D" id="SegmentShape2D_kdubu"]
-a = Vector2(279, 27)
-b = Vector2(7, 27)
-
-[sub_resource type="SegmentShape2D" id="SegmentShape2D_d21ai"]
-a = Vector2(694, 29)
-b = Vector2(6, 29)
-
-[sub_resource type="SegmentShape2D" id="SegmentShape2D_rj586"]
-a = Vector2(694, 23)
-b = Vector2(6, 26)
-
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_q6r6c"]
 distance = -779.0
 
 [node name="MainGame" type="Node2D" unique_id=1996221263]
 
-[node name="ScreenshotFrom20260618220905" type="Sprite2D" parent="." unique_id=179450986]
-position = Vector2(683, 384)
-texture = ExtResource("1_0hol4")
+[node name="DynamicCamera" type="Camera2D" parent="." unique_id=9015799]
+position = Vector2(17, 2)
+script = ExtResource("3_epypp")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=214813178]
-layer = -1
+[node name="EnvironmentBackdrop" type="Node2D" parent="DynamicCamera" unique_id=1036108288]
+
+[node name="SkyLayer" type="Parallax2D" parent="DynamicCamera/EnvironmentBackdrop" unique_id=826981093]
+
+[node name="Sprite2D" type="Sprite2D" parent="DynamicCamera/EnvironmentBackdrop/SkyLayer" unique_id=181498820]
+scale = Vector2(1.3, 1.3)
+texture = ExtResource("1_ir8iy")
+
+[node name="DistanceBGLayer" type="Parallax2D" parent="DynamicCamera/EnvironmentBackdrop" unique_id=1647705421]
+
+[node name="Sprite2D" type="Sprite2D" parent="DynamicCamera/EnvironmentBackdrop/DistanceBGLayer" unique_id=109253090]
+scale = Vector2(1.1, 1.1)
+texture = ExtResource("2_hqns4")
+
+[node name="Floor" type="StaticBody2D" parent="." unique_id=1417579336]
+scale = Vector2(1.25, 1.25)
+
+[node name="plt6" type="CollisionShape2D" parent="Floor" unique_id=779000192]
+position = Vector2(-158, -133)
+shape = SubResource("SegmentShape2D_ta5nu")
+one_way_collision = true
+
+[node name="Sprite2D" type="Sprite2D" parent="Floor/plt6" unique_id=377417459]
+position = Vector2(0, 1)
+texture = ExtResource("5_x0ka3")
+
+[node name="plt5" type="CollisionShape2D" parent="Floor" unique_id=2013869648]
+position = Vector2(204, -66)
+shape = SubResource("SegmentShape2D_ta5nu")
+one_way_collision = true
+
+[node name="Sprite2D" type="Sprite2D" parent="Floor/plt5" unique_id=19895116]
+position = Vector2(-1, 2)
+texture = ExtResource("5_x0ka3")
+flip_h = true
+
+[node name="plt4" type="CollisionShape2D" parent="Floor" unique_id=248904298]
+position = Vector2(-7, 10)
+shape = SubResource("SegmentShape2D_flf07")
+one_way_collision = true
+
+[node name="Sprite2D" type="Sprite2D" parent="Floor/plt4" unique_id=1661301112]
+texture = ExtResource("6_0h7mo")
+
+[node name="plt3" type="CollisionShape2D" parent="Floor" unique_id=1512687269]
+position = Vector2(-207, 74)
+shape = SubResource("SegmentShape2D_ta5nu")
+one_way_collision = true
+
+[node name="Sprite2D" type="Sprite2D" parent="Floor/plt3" unique_id=1487540220]
+position = Vector2(0, 1)
+texture = ExtResource("5_x0ka3")
+
+[node name="plt7" type="CollisionShape2D" parent="Floor" unique_id=627315195]
+position = Vector2(6, 150)
+shape = SubResource("SegmentShape2D_d2bti")
+one_way_collision = true
+
+[node name="Sprite2D" type="Sprite2D" parent="Floor/plt7" unique_id=92152420]
+position = Vector2(2, 11)
+texture = ExtResource("4_0h7mo")
+flip_h = true
+
+[node name="plt1" type="CollisionShape2D" parent="Floor" unique_id=2120510611]
+position = Vector2(-261, 239)
+shape = SubResource("SegmentShape2D_nr8wp")
+one_way_collision = true
+
+[node name="Sprite2D" type="Sprite2D" parent="Floor/plt1" unique_id=453085020]
+position = Vector2(0, -9)
+texture = ExtResource("3_x0ka3")
+
+[node name="plt2" type="CollisionShape2D" parent="Floor" unique_id=1757822743]
+position = Vector2(250, 226)
+shape = SubResource("SegmentShape2D_d2bti")
+one_way_collision = true
+
+[node name="Sprite2D" type="Sprite2D" parent="Floor/plt2" unique_id=737404473]
+position = Vector2(2, 8)
+texture = ExtResource("4_0h7mo")
 
 [node name="Player" type="CharacterBody2D" parent="." unique_id=198935470]
-position = Vector2(168.185, 0)
+position = Vector2(-318, -277)
 collision_layer = 2
 script = ExtResource("2_0e48y")
 Speed = 300.0
-MaxJumpHeight = 120.0
-MinJumpHeight = 100.0
+MaxJumpHeight = 90.0
 TimeToPeak = 0.3
 
 [node name="GunPivot" type="Marker2D" parent="Player" unique_id=1046020441]
@@ -82,6 +156,7 @@ target_position = Vector2(1500, 0)
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=1380142238]
+position = Vector2(0, 4)
 shape = SubResource("RectangleShape2D_epypp")
 
 [node name="head" type="Polygon2D" parent="Player" unique_id=1636744530]
@@ -94,13 +169,12 @@ polygon = PackedVector2Array(0, -32, 12, -26, 16, -14, 12, -2, 0, 4, -12, -2, -1
 polygon = PackedVector2Array(-18, 0, 18, 0, 10, 36, -10, 36)
 
 [node name="Player2" type="CharacterBody2D" parent="." unique_id=2130670031]
-position = Vector2(500, 0)
+position = Vector2(45, -239)
 collision_layer = 2
 script = ExtResource("2_0e48y")
 InputPrefix = "p2_"
 Speed = 300.0
-MaxJumpHeight = 120.0
-MinJumpHeight = 100.0
+MaxJumpHeight = 90.0
 TimeToPeak = 0.3
 
 [node name="GunPivot" type="Marker2D" parent="Player2" unique_id=43790575]
@@ -127,6 +201,7 @@ target_position = Vector2(1500, 0)
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player2" unique_id=708451036]
+position = Vector2(0, 4)
 shape = SubResource("RectangleShape2D_epypp")
 
 [node name="head" type="Polygon2D" parent="Player2" unique_id=1272123211]
@@ -137,48 +212,6 @@ polygon = PackedVector2Array(0, -32, 12, -26, 16, -14, 12, -2, 0, 4, -12, -2, -1
 
 [node name="Body" type="Polygon2D" parent="Player2" unique_id=528108171]
 polygon = PackedVector2Array(-18, 0, 18, 0, 10, 36, -10, 36)
-
-[node name="Floor" type="StaticBody2D" parent="." unique_id=441935007]
-position = Vector2(63, 585)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor" unique_id=1970296673]
-position = Vector2(27, -21)
-shape = SubResource("SegmentShape2D_epypp")
-one_way_collision = true
-
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="Floor" unique_id=776182715]
-position = Vector2(319, -111)
-shape = SubResource("SegmentShape2D_0hol4")
-one_way_collision = true
-
-[node name="CollisionShape2D3" type="CollisionShape2D" parent="Floor" unique_id=916038396]
-position = Vector2(662, -2)
-shape = SubResource("SegmentShape2D_q6r6c")
-one_way_collision = true
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="Floor" unique_id=225684282]
-position = Vector2(441, -302)
-shape = SubResource("SegmentShape2D_kdubu")
-one_way_collision = true
-
-[node name="CollisionShape2D5" type="CollisionShape2D" parent="Floor" unique_id=1849453659]
-position = Vector2(524, -402)
-shape = SubResource("SegmentShape2D_d21ai")
-one_way_collision = true
-
-[node name="CollisionShape2D6" type="CollisionShape2D" parent="Floor" unique_id=1211151749]
-position = Vector2(31, -492)
-shape = SubResource("SegmentShape2D_rj586")
-one_way_collision = true
-
-[node name="CollisionShape2D7" type="CollisionShape2D" parent="Floor" unique_id=351266216]
-position = Vector2(-32, -209)
-shape = SubResource("SegmentShape2D_rj586")
-one_way_collision = true
-
-[node name="DynamicCamera" type="Camera2D" parent="." unique_id=9015799]
-position = Vector2(170, 156)
-script = ExtResource("3_epypp")
 
 [node name="DeathZone" type="Area2D" parent="." unique_id=1187218831]
 collision_layer = 0

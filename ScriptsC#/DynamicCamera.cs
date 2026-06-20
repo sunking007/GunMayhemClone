@@ -8,44 +8,66 @@ public partial class DynamicCamera : Camera2D
 {
 	[ExportGroup("Movement & Zoom")]
 	[Export] public float SmoothSpeed = 6.0f;     
-	[Export] public float MinZoom = 0.35f;         // Zoomed out wide for distant players
-	[Export] public float MaxZoom = 0.8f;          // Zoomed in closer for 1 player or tight fights
-	[Export] public float ZoomMargin = 300.0f;     // Padding around players so they don't hit the screen edge
+	[Export] public float MinZoom = 0.35f;         
+	[Export] public float MaxZoom = 0.8f;          
+	[Export] public float ZoomMargin = 300.0f;     
+
+	[ExportGroup("Nested Parallax Tweak")]
+	[Export] public float DistanceBgFactor = 0.35f; // Scale factor (0.35 means background shifts at 35% speed)
 
 	private List<Node2D> _activeTargets = new List<Node2D>();
 	private Vector2 _screenSize;
+	private Node2D _distanceBgLayer;
 
 	public override void _Ready()
 	{
 		_screenSize = GetViewportRect().Size;
+		
+		// Find your background node nested straight under the camera tree structure
+		_distanceBgLayer = GetNodeOrNull<Node2D>("EnvironmentBackdrop/DistanceBGLayer");
+		
+		// Fully clear away boundaries so tracking operates smoothly
+		this.LimitLeft = -1000000;
+		this.LimitRight = 1000000;
+		this.LimitTop = -1000000;
+		this.LimitBottom = 1000000;
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		// 1. Find all alive players in the scene dynamically
 		FindActivePlayers();
 
-		// If no players are alive (everyone dead/respawning), do not move the camera
 		if (_activeTargets.Count == 0) return;
 
-		// 2. Smoothly transition position to the exact midpoint center of all alive players
+		// 1. Calculate target center point position vectors
 		Vector2 targetCenter = GetCenterPoint();
-		Position = Position.Lerp(targetCenter, (float)delta * SmoothSpeed);
+		Vector2 currentPos = GlobalPosition;
+		Vector2 nextPos = currentPos.Lerp(targetCenter, (float)delta * SmoothSpeed);
+		
+		GlobalPosition = nextPos;
 
-		// 3. Smoothly calculate and track dynamic camera lens zoom size
+		// 2. Smoothly calculate and track dynamic camera lens zoom size
 		float idealZoom = GetRequiredZoom();
 		Vector2 targetZoom = new Vector2(idealZoom, idealZoom);
 		Zoom = Zoom.Lerp(targetZoom, (float)delta * SmoothSpeed);
+
+		// 3. Process Child-Relative Parallax Counter Displacement
+		ApplyNestedParallax();
 	}
 
-	/// <summary>
-	/// Finds any node currently in the scene that belongs to the "players" group.
-	/// This handles solo play, 2-player local matches, and automatic removal during respawns.
-	/// </summary>
+	private void ApplyNestedParallax()
+	{
+		if (_distanceBgLayer == null) return;
+
+		// Because the node is a child of the camera, it moves at 100% camera speed.
+		// We subtract a fraction of the camera's local displacement vector to make it glide.
+		Vector2 cameraTrackingShift = GlobalPosition;
+		_distanceBgLayer.Position = -cameraTrackingShift * DistanceBgFactor;
+	}
+
 	private void FindActivePlayers()
 	{
 		_activeTargets.Clear();
-		
 		var playerNodes = GetTree().GetNodesInGroup("players");
 		foreach (Node node in playerNodes)
 		{
@@ -60,7 +82,6 @@ public partial class DynamicCamera : Camera2D
 	{
 		if (_activeTargets.Count == 1) return _activeTargets[0].GlobalPosition;
 
-		// Create a bounding box enclosing all active player coordinates
 		var bounds = new Rect2(_activeTargets[0].GlobalPosition, Vector2.Zero);
 		foreach (var target in _activeTargets)
 		{
@@ -71,24 +92,20 @@ public partial class DynamicCamera : Camera2D
 
 	private float GetRequiredZoom()
 	{
-		// If only 1 player is alive/left on screen, lock it to the closer MaxZoom setting
 		if (_activeTargets.Count <= 1) return MaxZoom;
 
-		// Calculate the bounding box of the distance between players
 		var bounds = new Rect2(_activeTargets[0].GlobalPosition, Vector2.Zero);
 		foreach (var target in _activeTargets)
 		{
 			bounds = bounds.Expand(target.GlobalPosition);
 		}
 
-		// Calculate needed zoom based on player distances + margin buffer
 		float widthWithMargin = bounds.Size.X + ZoomMargin;
 		float heightWithMargin = bounds.Size.Y + ZoomMargin;
 
 		float zoomX = _screenSize.X / widthWithMargin;
 		float zoomY = _screenSize.Y / heightWithMargin;
 
-		// Use the smaller zoom factor to guarantee all players stay perfectly framed on screen
 		float optimalZoom = Mathf.Min(zoomX, zoomY);
 		return Mathf.Clamp(optimalZoom, MinZoom, MaxZoom);
 	}
