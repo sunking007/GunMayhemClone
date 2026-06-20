@@ -42,6 +42,7 @@ distance = -779.0
 [node name="DynamicCamera" type="Camera2D" parent="." unique_id=9015799]
 position = Vector2(17, 2)
 script = ExtResource("3_epypp")
+ZoomMargin = 300.0
 
 [node name="EnvironmentBackdrop" type="Node2D" parent="DynamicCamera" unique_id=1036108288]
 
