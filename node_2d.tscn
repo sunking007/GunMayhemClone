@@ -2,8 +2,8 @@
 
 [ext_resource type="Texture2D" uid="uid://cvocwt2fsw6re" path="res://Map/back.jpg" id="1_ir8iy"]
 [ext_resource type="Script" uid="uid://2js2qjo8mfin" path="res://ScriptsC#/Player.cs" id="2_0e48y"]
-[ext_resource type="Texture2D" uid="uid://bbeoj6gv5fqyh" path="res://Map/1.png" id="2_hqns4"]
 [ext_resource type="Script" uid="uid://tef8ljvo5qr8" path="res://ScriptsC#/DynamicCamera.cs" id="3_epypp"]
+[ext_resource type="Texture2D" uid="uid://dbakvmg1ofefm" path="res://Map/11.png" id="3_hqns4"]
 [ext_resource type="Script" uid="uid://dn2d7mgw6rsfw" path="res://ScriptsC#/Weapon.cs" id="3_q6r6c"]
 [ext_resource type="Texture2D" uid="uid://bl0vr5mygustm" path="res://Map/plt1.png" id="3_x0ka3"]
 [ext_resource type="Texture2D" uid="uid://dops5bjyql7la" path="res://Map/plt2.png" id="4_0h7mo"]
@@ -42,7 +42,7 @@ distance = -779.0
 [node name="DynamicCamera" type="Camera2D" parent="." unique_id=9015799]
 position = Vector2(17, 2)
 script = ExtResource("3_epypp")
-ZoomMargin = 300.0
+MinZoom = 0.6
 
 [node name="EnvironmentBackdrop" type="Node2D" parent="DynamicCamera" unique_id=1036108288]
 
@@ -56,7 +56,7 @@ texture = ExtResource("1_ir8iy")
 
 [node name="Sprite2D" type="Sprite2D" parent="DynamicCamera/EnvironmentBackdrop/DistanceBGLayer" unique_id=109253090]
 scale = Vector2(1.1, 1.1)
-texture = ExtResource("2_hqns4")
+texture = ExtResource("3_hqns4")
 
 [node name="Floor" type="StaticBody2D" parent="." unique_id=1417579336]
 scale = Vector2(1.25, 1.25)
