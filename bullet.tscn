@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bn67etcl3wspb"]
 
-[ext_resource type="Script" uid="uid://bkf1cnp2nw2ns" path="res://ScriptsC#/Bullet.cs" id="1_v7oki"]
+[ext_resource type="Script" uid="uid://bkf1cnp2nw2ns" path="res://Scripts/Bullet.cs" id="1_v7oki"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_v7oki"]
 size = Vector2(6, 5)
