@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://dswn0x4tun3g8"]
+
+[ext_resource type="Script" uid="uid://2js2qjo8mfin" path="res://Scripts/Player.cs" id="1_i3pqv"]
+[ext_resource type="Script" uid="uid://dn2d7mgw6rsfw" path="res://Scripts/Weapon.cs" id="2_hqtel"]
+[ext_resource type="PackedScene" uid="uid://bn67etcl3wspb" path="res://scene/bullet.tscn" id="3_sweqy"]
+[ext_resource type="Texture2D" uid="uid://bxig647rav0nb" path="res://Assets/player/head.png" id="4_s4jxa"]
+[ext_resource type="Texture2D" uid="uid://byd1w4m86x6i5" path="res://Assets/player/body.png" id="5_oh5ij"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_epypp"]
+size = Vector2(19, 63)
+
+[node name="Player" type="CharacterBody2D" unique_id=351431050]
+collision_layer = 2
+script = ExtResource("1_i3pqv")
+Speed = 300.0
+MaxJumpHeight = 90.0
+TimeToPeak = 0.3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1051358368]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_epypp")
+
+[node name="head" type="Sprite2D" parent="." unique_id=4913857]
+texture = ExtResource("4_s4jxa")
+
+[node name="Body" type="Sprite2D" parent="." unique_id=1001555491]
+texture = ExtResource("5_oh5ij")
+
+[node name="GunPivot" type="Marker2D" parent="." unique_id=686419401]
+
+[node name="Hand" type="Polygon2D" parent="GunPivot" unique_id=1226450054]
+position = Vector2(-27.75, -35.639996)
+scale = Vector2(2.25, 2.25)
+polygon = PackedVector2Array(24, 22, 24, 28, 19, 28, 19, 22)
+
+[node name="Weapon" type="Polygon2D" parent="GunPivot" unique_id=834919704]
+position = Vector2(-14.75, -8.639996)
+scale = Vector2(1.83, 1.83)
+color = Color(0.9568688, 0.090101264, 0.5991672, 1)
+polygon = PackedVector2Array(19, 8, 19, 10, 21, 11, 18, 16, 22, 17, 24, 13, 25, 12, 29.256294, 12.000002, 34, 12, 34, 10, 35, 10, 35, 8, 28.72963, 7.999998)
+script = ExtResource("2_hqtel")
+BulletScene = ExtResource("3_sweqy")
+
+[node name="Muzzle" type="Marker2D" parent="GunPivot/Weapon" unique_id=1181127242]
+position = Vector2(41.93989, 10.732238)
+scale = Vector2(0.54644805, 0.54644805)
+
+[node name="HitScanner" type="RayCast2D" parent="GunPivot/Weapon" unique_id=542529815]
+target_position = Vector2(1500, 0)
+collision_mask = 2

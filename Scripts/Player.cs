@@ -18,40 +18,35 @@ public partial class Player : CharacterBody2D
 	[Export] public float TimeToFall = 0.3f;      
 	[Export] public int MaxJumps = 2;
 
-	// Cached input action string names
 	private string _actionLeft;
 	private string _actionRight;
 	private string _actionJump;
 	private string _actionDown;
 	private string _actionShoot;
 
-	// Calculated physics values
 	private float _jumpVelocity;
 	private float _minJumpVelocity;
 	private float _gravity;
 	private float _fallGravity;
 	private int _jumpCount = 0;
 
-	// Knockback Vector Tracking
 	private Vector2 _knockbackVelocity = Vector2.Zero;
-
-	// Last-input directional memory tracking
 	private float _lastValidDirection = 1.0f;
 
-	// Geometric Node References
-	private Polygon2D _body;
-	private Polygon2D _head;
+	// Updated fields to use Sprite2D architecture
+	private Sprite2D _body;
+	private Sprite2D _head;
 	private Marker2D _gunPivot;
 	private Weapon _currentWeapon;
 
 	public override void _Ready()
 	{
-		_body = GetNodeOrNull<Polygon2D>("Body");
-		_head = GetNodeOrNull<Polygon2D>("head");
+		// Safely fetching the newly typed Sprite2D nodes
+		_body = GetNodeOrNull<Sprite2D>("Body");
+		_head = GetNodeOrNull<Sprite2D>("head");
 		_gunPivot = GetNodeOrNull<Marker2D>("GunPivot");
 		_currentWeapon = GetNodeOrNull<Weapon>("GunPivot/Weapon");
 
-		// Dynamically build input action names
 		_actionLeft = InputPrefix + "move_left";
 		_actionRight = InputPrefix + "move_right";
 		_actionJump = InputPrefix + "jump";
@@ -66,7 +61,6 @@ public partial class Player : CharacterBody2D
 	{
 		Vector2 velocity = Velocity;
 
-		// 1. Dynamic Gravity Application
 		if (!IsOnFloor())
 		{
 			float currentGravity = (velocity.Y > 0) ? _fallGravity : _gravity;
@@ -77,7 +71,6 @@ public partial class Player : CharacterBody2D
 			_jumpCount = 0; 
 		}
 
-		// 2. Variable Jump Logic
 		if (Input.IsActionJustPressed(_actionJump) && (IsOnFloor() || _jumpCount < MaxJumps))
 		{
 			velocity.Y = _jumpVelocity;
@@ -88,13 +81,11 @@ public partial class Player : CharacterBody2D
 			velocity.Y = _minJumpVelocity;
 		}
 
-		// 3. Platform Drop-Through Logic
 		if (IsOnFloor() && Input.IsActionJustPressed(_actionDown))
 		{
 			DropThroughPlatform();
 		}
 
-		// 4. Snappy Last-Input Priority Walking Math
 		float direction = 0.0f;
 		bool pressingLeft = Input.IsActionPressed(_actionLeft);
 		bool pressingRight = Input.IsActionPressed(_actionRight);
@@ -108,7 +99,6 @@ public partial class Player : CharacterBody2D
 		else if (pressingLeft) direction = -1.0f;
 		else if (pressingRight) direction = 1.0f;
 
-		// Calculate standard controlled walking speed
 		float targetWalkingVelocity = 0.0f;
 		if (direction != 0)
 		{
@@ -118,25 +108,20 @@ public partial class Player : CharacterBody2D
 		}
 		else
 		{
-			// Apply normal ground friction deceleration
 			targetWalkingVelocity = Mathf.MoveToward(velocity.X - _knockbackVelocity.X, 0, Speed * 0.25f);
 		}
 
-		// 5. Apply Knockback Decay (Smoothly reduces external momentum over time)
 		_knockbackVelocity.X = Mathf.MoveToward(_knockbackVelocity.X, 0.0f, 1200.0f * (float)delta);
 		_knockbackVelocity.Y = Mathf.MoveToward(_knockbackVelocity.Y, 0.0f, 1200.0f * (float)delta);
 
-		// COMBINE: Add walking intent together with independent weapon knockback forces!
 		velocity.X = targetWalkingVelocity + _knockbackVelocity.X;
 		
-		// Only apply vertical knockback if there's active vertical force remaining
 		if (Mathf.Abs(_knockbackVelocity.Y) > 0.1f)
 		{
 			velocity.Y += _knockbackVelocity.Y;
-			_knockbackVelocity.Y = 0; // Handed off immediately to the gravity system
+			_knockbackVelocity.Y = 0;
 		}
 
-		// 6. Shooting Input Link
 		if (Input.IsActionPressed(_actionShoot))
 		{
 			if (_currentWeapon != null)
@@ -149,18 +134,10 @@ public partial class Player : CharacterBody2D
 		MoveAndSlide();
 	}
 
-	/// <summary>
-	/// Safely injects physical blast impact velocities that cannot be overwritten by keyboard input.
-	/// </summary>
 	public void ApplyKnockback(float horizontalDirection, float force)
 	{
-		// Push slightly upward so the character breaks contact with floor friction
 		Vector2 knockbackVector = new Vector2(horizontalDirection, -0.3f).Normalized();
-		
-		// Add the force straight into our persistent knockback pool
 		_knockbackVelocity += knockbackVector * force;
-		
-		GD.Print($"{Name} knocked back with force: {force}!");
 	}
 
 	private async void DropThroughPlatform()
@@ -177,7 +154,6 @@ public partial class Player : CharacterBody2D
 	{
 		_gravity = (2.0f * MaxJumpHeight) / Mathf.Pow(TimeToPeak, 2.0f);
 		_fallGravity = (2.0f * MaxJumpHeight) / Mathf.Pow(TimeToFall, 2.0f);
-		
 		_jumpVelocity = -((2.0f * MaxJumpHeight) / TimeToPeak);
 		_minJumpVelocity = -Mathf.Sqrt(2.0f * _gravity * MinJumpHeight);
 	}
@@ -185,9 +161,12 @@ public partial class Player : CharacterBody2D
 	private void FlipCharacter(float direction)
 	{
 		bool isFlipped = direction < 0;
-
-		if (_body != null) _body.Scale = new Vector2(isFlipped ? -1.0f : 1.0f, 1.0f);
-		if (_head != null) _head.Scale = new Vector2(isFlipped ? -1.0f : 1.0f, 1.0f);
+		
+		// Use FlipH for clean visual sprite mirroring
+		if (_body != null) _body.FlipH = isFlipped;
+		if (_head != null) _head.FlipH = isFlipped;
+		
+		// Scale is kept on the gun pivot so weapon position circles around the character
 		if (_gunPivot != null) _gunPivot.Scale = new Vector2(isFlipped ? -1.0f : 1.0f, 1.0f);
 	}
 }

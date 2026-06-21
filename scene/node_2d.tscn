@@ -1,16 +1,14 @@
 [gd_scene format=3 uid="uid://p1n5aent04f7"]
 
 [ext_resource type="Texture2D" uid="uid://cvocwt2fsw6re" path="res://Map/back.jpg" id="1_ir8iy"]
-[ext_resource type="Script" uid="uid://2js2qjo8mfin" path="res://Scripts/Player.cs" id="2_0e48y"]
 [ext_resource type="Script" uid="uid://tef8ljvo5qr8" path="res://Scripts/DynamicCamera.cs" id="3_epypp"]
 [ext_resource type="Texture2D" uid="uid://dbakvmg1ofefm" path="res://Map/11.png" id="3_hqns4"]
-[ext_resource type="Script" uid="uid://dn2d7mgw6rsfw" path="res://Scripts/Weapon.cs" id="3_q6r6c"]
 [ext_resource type="Texture2D" uid="uid://bl0vr5mygustm" path="res://Map/plt1.png" id="3_x0ka3"]
 [ext_resource type="Texture2D" uid="uid://dops5bjyql7la" path="res://Map/plt2.png" id="4_0h7mo"]
 [ext_resource type="Script" uid="uid://ovd1cu6o08ps" path="res://Scripts/DeathZone.cs" id="4_0hol4"]
-[ext_resource type="PackedScene" uid="uid://bn67etcl3wspb" path="res://bullet.tscn" id="4_kdubu"]
 [ext_resource type="Texture2D" uid="uid://c3vgfb7b37ge" path="res://Map/plt3.png" id="5_x0ka3"]
 [ext_resource type="Texture2D" uid="uid://ch58ow4v16py7" path="res://Map/plt4.png" id="6_0h7mo"]
+[ext_resource type="PackedScene" uid="uid://dswn0x4tun3g8" path="res://scene/player.tscn" id="8_x0ka3"]
 
 [sub_resource type="SegmentShape2D" id="SegmentShape2D_ta5nu"]
 a = Vector2(251, -44)
@@ -27,12 +25,6 @@ b = Vector2(-199, -50)
 [sub_resource type="SegmentShape2D" id="SegmentShape2D_nr8wp"]
 a = Vector2(147, -69)
 b = Vector2(-144, -69)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_epypp"]
-size = Vector2(19, 63)
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_epypp"]
-load_path = "res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex"
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_q6r6c"]
 distance = -779.0
@@ -125,94 +117,12 @@ one_way_collision = true
 position = Vector2(2, 8)
 texture = ExtResource("4_0h7mo")
 
-[node name="Player" type="CharacterBody2D" parent="." unique_id=198935470]
-position = Vector2(-318, -277)
-collision_layer = 2
-script = ExtResource("2_0e48y")
-Speed = 300.0
-MaxJumpHeight = 90.0
-TimeToPeak = 0.3
+[node name="Player" parent="." unique_id=351431050 instance=ExtResource("8_x0ka3")]
+position = Vector2(-345, -289)
 
-[node name="GunPivot" type="Marker2D" parent="Player" unique_id=1046020441]
-
-[node name="Hand" type="Polygon2D" parent="Player/GunPivot" unique_id=1484386523]
-position = Vector2(-27.75, -35.639996)
-scale = Vector2(2.25, 2.25)
-polygon = PackedVector2Array(24, 22, 24, 28, 19, 28, 19, 22)
-
-[node name="Weapon" type="Polygon2D" parent="Player/GunPivot" unique_id=1790598894]
-position = Vector2(-14.75, -8.639996)
-scale = Vector2(1.83, 1.83)
-color = Color(0.9568688, 0.090101264, 0.5991672, 1)
-polygon = PackedVector2Array(19, 8, 19, 10, 21, 11, 18, 16, 22, 17, 24, 13, 25, 12, 29.256294, 12.000002, 34, 12, 34, 10, 35, 10, 35, 8, 28.72963, 7.999998)
-script = ExtResource("3_q6r6c")
-BulletScene = ExtResource("4_kdubu")
-
-[node name="Muzzle" type="Marker2D" parent="Player/GunPivot/Weapon" unique_id=1728153408]
-position = Vector2(25.546448, 11.825136)
-scale = Vector2(0.54644805, 0.54644805)
-
-[node name="HitScanner" type="RayCast2D" parent="Player/GunPivot/Weapon" unique_id=837199855]
-target_position = Vector2(1500, 0)
-collision_mask = 2
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=1380142238]
-position = Vector2(0, 4)
-shape = SubResource("RectangleShape2D_epypp")
-
-[node name="head" type="Polygon2D" parent="Player" unique_id=1636744530]
-texture = SubResource("CompressedTexture2D_epypp")
-texture_offset = Vector2(18.295, 34.31)
-texture_scale = Vector2(3.545, 3.545)
-polygon = PackedVector2Array(0, -32, 12, -26, 16, -14, 12, -2, 0, 4, -12, -2, -16, -14, -12, -26)
-
-[node name="Body" type="Polygon2D" parent="Player" unique_id=402999920]
-polygon = PackedVector2Array(-18, 0, 18, 0, 10, 36, -10, 36)
-
-[node name="Player2" type="CharacterBody2D" parent="." unique_id=2130670031]
-position = Vector2(45, -239)
-collision_layer = 2
-script = ExtResource("2_0e48y")
+[node name="Player2" parent="." unique_id=1225684747 instance=ExtResource("8_x0ka3")]
+position = Vector2(239, -235)
 InputPrefix = "p2_"
-Speed = 300.0
-MaxJumpHeight = 90.0
-TimeToPeak = 0.3
-
-[node name="GunPivot" type="Marker2D" parent="Player2" unique_id=43790575]
-
-[node name="Hand" type="Polygon2D" parent="Player2/GunPivot" unique_id=1513378287]
-position = Vector2(-27.75, -35.639996)
-scale = Vector2(2.25, 2.25)
-polygon = PackedVector2Array(24, 22, 24, 28, 19, 28, 19, 22)
-
-[node name="Weapon" type="Polygon2D" parent="Player2/GunPivot" unique_id=599036991]
-position = Vector2(-14.75, -8.639996)
-scale = Vector2(1.83, 1.83)
-color = Color(0.9568688, 0.090101264, 0.5991672, 1)
-polygon = PackedVector2Array(19, 8, 19, 10, 21, 11, 18, 16, 22, 17, 24, 13, 25, 12, 29.256294, 12.000002, 34, 12, 34, 10, 35, 10, 35, 8, 28.72963, 7.999998)
-script = ExtResource("3_q6r6c")
-BulletScene = ExtResource("4_kdubu")
-
-[node name="Muzzle" type="Marker2D" parent="Player2/GunPivot/Weapon" unique_id=1767863569]
-position = Vector2(25.546448, 11.825136)
-scale = Vector2(0.54644805, 0.54644805)
-
-[node name="HitScanner" type="RayCast2D" parent="Player2/GunPivot/Weapon" unique_id=1313370601]
-target_position = Vector2(1500, 0)
-collision_mask = 2
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player2" unique_id=708451036]
-position = Vector2(0, 4)
-shape = SubResource("RectangleShape2D_epypp")
-
-[node name="head" type="Polygon2D" parent="Player2" unique_id=1272123211]
-texture = SubResource("CompressedTexture2D_epypp")
-texture_offset = Vector2(18.295, 34.31)
-texture_scale = Vector2(3.545, 3.545)
-polygon = PackedVector2Array(0, -32, 12, -26, 16, -14, 12, -2, 0, 4, -12, -2, -16, -14, -12, -26)
-
-[node name="Body" type="Polygon2D" parent="Player2" unique_id=528108171]
-polygon = PackedVector2Array(-18, 0, 18, 0, 10, 36, -10, 36)
 
 [node name="DeathZone" type="Area2D" parent="." unique_id=1187218831]
 collision_layer = 0

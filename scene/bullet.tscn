@@ -6,6 +6,7 @@
 size = Vector2(6, 5)
 
 [node name="Bullet" type="CharacterBody2D" unique_id=372578573]
+position = Vector2(29, 1)
 collision_layer = 0
 collision_mask = 3
 script = ExtResource("1_v7oki")
