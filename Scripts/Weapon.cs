@@ -3,7 +3,7 @@ using System;
 
 namespace GunMayhemClone;
 
-public partial class Weapon : Polygon2D
+public partial class Weapon : Sprite2D
 {
 	[ExportGroup("Weapon Configurations")]
 	[Export] public float FireRateCooldown = 0.2f; 
