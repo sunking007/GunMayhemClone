@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://cko7afkwb7np2"]
+
+[ext_resource type="Script" uid="uid://bmwa5nd62uw53" path="res://Scripts/PlayerUiCard.cs" id="1_g1mhb"]
+[ext_resource type="Texture2D" uid="uid://dfb63e2jwmn7y" path="res://Assets/UI/hud_frame.png" id="2_ekj7l"]
+[ext_resource type="Texture2D" uid="uid://bap0kchtunjdd" path="res://Assets/UI/empty_bar.png" id="3_lvkio"]
+[ext_resource type="Texture2D" uid="uid://unemu65v1i3r" path="res://Assets/UI/bar_fill.png" id="4_sffuc"]
+[ext_resource type="Texture2D" uid="uid://ue3netjlx2jx" path="res://Assets/UI/Layer 3.png" id="5_w333g"]
+
+[node name="PlayerUiCard" type="Control" unique_id=641710755]
+custom_minimum_size = Vector2(350, 100)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 350.0
+offset_bottom = 100.0
+script = ExtResource("1_g1mhb")
+
+[node name="BackgroundFrame" type="TextureRect" parent="." unique_id=2049919286]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("2_ekj7l")
+
+[node name="BackgroundFrame2" type="TextureRect" parent="." unique_id=640270882]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 12.0
+offset_right = 58.0
+offset_bottom = 57.0
+texture = ExtResource("5_w333g")
+
+[node name="HealthBar" type="TextureProgressBar" parent="." unique_id=1918020300]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 29.0
+offset_right = 215.0
+offset_bottom = 59.0
+texture_under = ExtResource("3_lvkio")
+texture_progress = ExtResource("4_sffuc")
+
+[node name="LayoutContainer" type="HBoxContainer" parent="." unique_id=1470901788]
+layout_mode = 0
+offset_top = 7.0
+offset_right = 368.0
+offset_bottom = 74.0
+
+[node name="PortraitContainer" type="Control" parent="LayoutContainer" unique_id=380446616]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+
+[node name="CharacterIcon" type="TextureRect" parent="LayoutContainer/PortraitContainer" unique_id=1183544587]
+layout_mode = 0
+offset_left = 17.0
+offset_top = 5.0
+offset_right = 57.0
+offset_bottom = 50.0
+texture = ExtResource("5_w333g")
+
+[node name="MainDataLayout" type="VBoxContainer" parent="LayoutContainer" unique_id=1621692939]
+layout_mode = 2
+
+[node name="HeaderRow" type="HBoxContainer" parent="LayoutContainer/MainDataLayout" unique_id=1308514918]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+
+[node name="PlayerNameLabel" type="Label" parent="LayoutContainer/MainDataLayout/HeaderRow" unique_id=913087096]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Player 1"
+
+[node name="Spacer" type="Control" parent="LayoutContainer/MainDataLayout/HeaderRow" unique_id=53463488]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+
+[node name="LivesCountLabel" type="Label" parent="LayoutContainer/MainDataLayout/HeaderRow" unique_id=1152771608]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)

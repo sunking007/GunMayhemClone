@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bh5ckfn51nget"]
 
 [ext_resource type="Texture2D" uid="uid://c4fdnd3tlxbkl" path="res://Assets/1.png" id="1_41fj4"]
-[ext_resource type="Script" uid="uid://bc72xbbo0gvrt" path="res://JumpDust.cs" id="2_6mxik"]
+[ext_resource type="Script" uid="uid://bc72xbbo0gvrt" path="res://Scripts/JumpDust.cs" id="2_6mxik"]
 
 [sub_resource type="Curve" id="Curve_41fj4"]
 _data = [Vector2(0.009259254, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]

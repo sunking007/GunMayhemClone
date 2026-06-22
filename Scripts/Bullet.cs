@@ -10,6 +10,9 @@ public partial class Bullet : CharacterBody2D
 	private float _direction;
 	private GodotObject _shooter;
 
+	// Exposed parameter configuration for bullet payload damage
+	[Export] public float BulletDamage = 15.0f;
+
 	public void Launch(Vector2 position, float facingDirection, float speed, float force, GodotObject shooterInstance)
 	{
 		this.GlobalPosition = position;
@@ -31,7 +34,8 @@ public partial class Bullet : CharacterBody2D
 
 			if (target is Player hitPlayer)
 			{
-				hitPlayer.ApplyKnockback(_direction, _knockbackForce);
+				// Passes down direction, bullet payload damage, and raw knockback force
+				hitPlayer.ReceiveHit(_direction, BulletDamage, _knockbackForce);
 			}
 
 			QueueFree();

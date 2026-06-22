@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://p1n5aent04f7"]
 
+[ext_resource type="PackedScene" uid="uid://cko7afkwb7np2" path="res://scene/player_ui_card.tscn" id="1_42d7r"]
 [ext_resource type="Texture2D" uid="uid://cvocwt2fsw6re" path="res://Map/back.jpg" id="1_ir8iy"]
 [ext_resource type="Script" uid="uid://tef8ljvo5qr8" path="res://Scripts/DynamicCamera.cs" id="3_epypp"]
 [ext_resource type="Texture2D" uid="uid://dbakvmg1ofefm" path="res://Map/11.png" id="3_hqns4"]
@@ -9,7 +10,6 @@
 [ext_resource type="Texture2D" uid="uid://c3vgfb7b37ge" path="res://Map/plt3.png" id="5_x0ka3"]
 [ext_resource type="Texture2D" uid="uid://ch58ow4v16py7" path="res://Map/plt4.png" id="6_0h7mo"]
 [ext_resource type="PackedScene" uid="uid://dswn0x4tun3g8" path="res://scene/player.tscn" id="8_x0ka3"]
-[ext_resource type="PackedScene" uid="uid://bh5ckfn51nget" path="res://scene/JumpDust.tscn" id="9_cb6ix"]
 
 [sub_resource type="SegmentShape2D" id="SegmentShape2D_ta5nu"]
 a = Vector2(251, -44)
@@ -31,6 +31,24 @@ b = Vector2(-144, -69)
 distance = -779.0
 
 [node name="MainGame" type="Node2D" unique_id=1996221263]
+
+[node name="GameUi" type="CanvasLayer" parent="." unique_id=1215388778]
+
+[node name="HBoxContainer" type="HBoxContainer" parent="GameUi" unique_id=398436053]
+offset_left = 211.0
+offset_top = 542.0
+offset_right = 969.0
+offset_bottom = 642.0
+
+[node name="PlayerUiCard" parent="GameUi/HBoxContainer" unique_id=641710755 instance=ExtResource("1_42d7r")]
+layout_mode = 2
+
+[node name="Control" type="Control" parent="GameUi/HBoxContainer" unique_id=293735477]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+
+[node name="PlayerUiCard2" parent="GameUi/HBoxContainer" unique_id=1022135945 instance=ExtResource("1_42d7r")]
+layout_mode = 2
 
 [node name="DynamicCamera" type="Camera2D" parent="." unique_id=9015799]
 position = Vector2(17, 2)
@@ -118,14 +136,17 @@ one_way_collision = true
 position = Vector2(2, 8)
 texture = ExtResource("4_0h7mo")
 
-[node name="Player" parent="." unique_id=351431050 instance=ExtResource("8_x0ka3")]
+[node name="Player" parent="." unique_id=351431050 node_paths=PackedStringArray("UiCard") instance=ExtResource("8_x0ka3")]
 position = Vector2(-345, -289)
-DustEffectScene = ExtResource("9_cb6ix")
+UiCard = NodePath("../GameUi/HBoxContainer/PlayerUiCard")
+Lives = 10
+TargetSpawnPointNode = NodePath("../P1SpawnPoint")
 
-[node name="Player2" parent="." unique_id=1225684747 instance=ExtResource("8_x0ka3")]
+[node name="Player2" parent="." unique_id=1225684747 node_paths=PackedStringArray("UiCard") instance=ExtResource("8_x0ka3")]
 position = Vector2(239, -235)
 InputPrefix = "p2_"
-DustEffectScene = ExtResource("9_cb6ix")
+UiCard = NodePath("../GameUi/HBoxContainer/PlayerUiCard2")
+TargetSpawnPointNode = NodePath("../P2SpawnPoint")
 
 [node name="DeathZone" type="Area2D" parent="." unique_id=1187218831]
 collision_layer = 0
@@ -134,3 +155,9 @@ script = ExtResource("4_0hol4")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DeathZone" unique_id=453025525]
 shape = SubResource("WorldBoundaryShape2D_q6r6c")
+
+[node name="P1SpawnPoint" type="Marker2D" parent="." unique_id=1175146187]
+position = Vector2(-262, -468)
+
+[node name="P2SpawnPoint" type="Marker2D" parent="." unique_id=1411808886]
+position = Vector2(377, -356)

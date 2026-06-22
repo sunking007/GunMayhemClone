@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bn67etcl3wspb"]
 
 [ext_resource type="Script" uid="uid://bkf1cnp2nw2ns" path="res://Scripts/Bullet.cs" id="1_v7oki"]
+[ext_resource type="Texture2D" uid="uid://cdnm6lfxnaij8" path="res://Assets/player/bullet.png" id="2_xw300"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_v7oki"]
 size = Vector2(6, 5)
@@ -13,9 +14,6 @@ script = ExtResource("1_v7oki")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1946568444]
 shape = SubResource("RectangleShape2D_v7oki")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1596738039]
-offset_left = -27.0
-offset_top = -3.0
-offset_right = 3.0
-offset_bottom = 3.0
-color = Color(1, 1, 0, 1)
+[node name="Bullet" type="Sprite2D" parent="." unique_id=1140617457]
+position = Vector2(-23, 0)
+texture = ExtResource("2_xw300")

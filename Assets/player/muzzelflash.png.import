@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dtfhdglg6hhb2"
-path="res://.godot/imported/1 (5).png-6dd98929988e0cc8f3868846f04a3981.ctex"
+uid="uid://dgsxa1irvy5v1"
+path="res://.godot/imported/muzzelflash.png-428f0ce9626c4f2fdf7e34a6920ee987.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/player/1 (5).png"
-dest_files=["res://.godot/imported/1 (5).png-6dd98929988e0cc8f3868846f04a3981.ctex"]
+source_file="res://Assets/player/muzzelflash.png"
+dest_files=["res://.godot/imported/muzzelflash.png-428f0ce9626c4f2fdf7e34a6920ee987.ctex"]
 
 [params]
 

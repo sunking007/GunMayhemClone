@@ -8,6 +8,7 @@ public partial class Player : CharacterBody2D
 	[ExportGroup("Setup")]
 	[Export] public string InputPrefix = "p1_"; 
 	[Export] public PackedScene DustEffectScene; 
+	[Export] public PlayerUiCard UiCard; 
 
 	[ExportGroup("Horizontal Movement")]
 	[Export] public float Speed = 450.0f;
@@ -18,6 +19,14 @@ public partial class Player : CharacterBody2D
 	[Export] public float TimeToPeak = 0.4f;      
 	[Export] public float TimeToFall = 0.3f;      
 	[Export] public int MaxJumps = 2;
+
+	[ExportGroup("Traditional Health System")]
+	[Export] public float MaxHealth = 100.0f;
+	[Export] public int Lives = 3;
+	[Export] public NodePath TargetSpawnPointNode; 
+
+	[ExportGroup("Knockback Scaling Matrix")]
+	[Export] public float KnockbackScaleFactor = 1.0f; 
 
 	private string _actionLeft;
 	private string _actionRight;
@@ -40,12 +49,23 @@ public partial class Player : CharacterBody2D
 	private Marker2D _gunPivot;
 	private Weapon _currentWeapon;
 
+	private float _currentHealth;
+	private Node2D _spawnMarker;
+	
+	// Safety tracking variable
+	private bool _isDead = false;
+
 	public override void _Ready()
 	{
 		_body = GetNodeOrNull<Sprite2D>("Body");
 		_head = GetNodeOrNull<Sprite2D>("head");
 		_gunPivot = GetNodeOrNull<Marker2D>("GunPivot");
 		_currentWeapon = GetNodeOrNull<Weapon>("GunPivot/Weapon");
+
+		if (TargetSpawnPointNode != null)
+		{
+			_spawnMarker = GetNodeOrNull<Node2D>(TargetSpawnPointNode);
+		}
 
 		_actionLeft = InputPrefix + "move_left";
 		_actionRight = InputPrefix + "move_right";
@@ -55,10 +75,25 @@ public partial class Player : CharacterBody2D
 
 		CalculateJumpParameters();
 		this.AddToGroup("players");
+
+		_currentHealth = MaxHealth;
+
+		if (_spawnMarker != null)
+		{
+			GlobalPosition = _spawnMarker.GlobalPosition;
+		}
+
+		if (UiCard != null)
+		{
+			UiCard.SetupCard(Name, null, MaxHealth, Lives);
+		}
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
+		// Completely stop processing inputs and gravity loops if the player is dead
+		if (_isDead) return;
+
 		Vector2 velocity = Velocity;
 
 		if (!IsOnFloor())
@@ -140,26 +175,132 @@ public partial class Player : CharacterBody2D
 		_wasOnFloorLastFrame = IsOnFloor();
 	}
 
-	// Used when getting hit by enemies (has vertical lift factor)
 	public void ApplyKnockback(float horizontalDirection, float force)
 	{
+		if (_isDead) return;
 		Vector2 knockbackVector = new Vector2(horizontalDirection, -0.3f).Normalized();
 		_knockbackVelocity += knockbackVector * force;
 	}
 
-	// NEW: Pure horizontal impulse exclusively for weapon recoil pushback
 	public void ApplyWeaponRecoil(float horizontalDirection, float force)
 	{
+		if (_isDead) return;
 		_knockbackVelocity.X += horizontalDirection * force;
+	}
+
+	public void ReceiveHit(float horizontalDirection, float damageAmount, float baseForce)
+	{
+		if (_isDead) return;
+
+		_currentHealth -= damageAmount;
+		GD.Print($"{Name} Hit! HP remaining: {_currentHealth}/{MaxHealth}");
+
+		if (UiCard != null)
+		{
+			UiCard.UpdateHealthDisplay(_currentHealth);
+		}
+
+		if (_currentHealth <= 0.0f)
+		{
+			HandleDeath();
+			return;
+		}
+
+		float amplifiedForce = baseForce * KnockbackScaleFactor;
+		ApplyKnockback(horizontalDirection, amplifiedForce);
+	}
+
+	private void HandleDeath()
+	{
+		Lives--;
+		GD.Print($"{Name} Died! Remaining Lives: {Lives}");
+
+		if (UiCard != null)
+		{
+			UiCard.UpdateLivesDisplay(Lives);
+		}
+
+		if (Lives > 0)
+		{
+			if (_spawnMarker != null) GlobalPosition = _spawnMarker.GlobalPosition;
+			
+			Velocity = Vector2.Zero;
+			_knockbackVelocity = Vector2.Zero;
+			_currentHealth = MaxHealth; 
+
+			if (UiCard != null)
+			{
+				UiCard.UpdateHealthDisplay(_currentHealth);
+			}
+		}
+		else
+		{
+			GD.Print($"{Name} Out of lives! Eliminated!");
+			QueueFree();
+		}
+	}
+
+	// 🛠️ HOOK FOR DEATHZONE: Subtracts a single life and disables collisions to stop the double-hit bug
+	public bool ProcessFallingLifePenalty()
+	{
+		if (_isDead) return Lives > 0;
+		_isDead = true;
+
+		Lives--;
+		GD.Print($"{Name} fell out of bounds! Remaining Lives: {Lives}");
+
+		if (UiCard != null)
+		{
+			UiCard.UpdateLivesDisplay(Lives);
+		}
+
+		if (Lives > 0)
+		{
+			_currentHealth = MaxHealth;
+			Velocity = Vector2.Zero;
+			_knockbackVelocity = Vector2.Zero;
+			
+			// Force physical server collision box to turn off instantly
+			this.SetCollisionLayerValue(2, false);
+			this.SetCollisionMaskValue(1, false);
+
+			if (_spawnMarker != null)
+			{
+				GlobalPosition = _spawnMarker.GlobalPosition;
+			}
+
+			if (UiCard != null)
+			{
+				UiCard.UpdateHealthDisplay(_currentHealth);
+			}
+
+			return true; 
+		}
+		else
+		{
+			GD.Print($"{Name} out of lives! Eliminating player.");
+			QueueFree(); 
+			return false; 
+		}
+	}
+
+	// Re-enables input movement and physics collision layers after the timer delay ends
+	public void CompleteRespawn()
+	{
+		_isDead = false;
+		Velocity = Vector2.Zero;
+		_knockbackVelocity = Vector2.Zero;
+
+		// Turn physics collision box back on safely
+		this.SetCollisionLayerValue(2, true);
+		this.SetCollisionMaskValue(1, true);
 	}
 
 	private void SpawnDustCloud()
 	{
 		if (DustEffectScene == null) return;
-		
 		var dustInstance = DustEffectScene.Instantiate<GpuParticles2D>();
 		GetParent().AddChild(dustInstance);
-		
 		dustInstance.GlobalPosition = new Vector2(GlobalPosition.X, GlobalPosition.Y + 45.0f);
 		dustInstance.Emitting = true;
 	}
@@ -185,10 +326,9 @@ public partial class Player : CharacterBody2D
 	private void FlipCharacter(float direction)
 	{
 		bool isFlipped = direction < 0;
-		
 		if (_body != null) _body.FlipH = isFlipped;
 		if (_head != null) _head.FlipH = isFlipped;
-		
 		if (_gunPivot != null) _gunPivot.Scale = new Vector2(isFlipped ? -1.0f : 1.0f, 1.0f);
 	}
 }
+ds
