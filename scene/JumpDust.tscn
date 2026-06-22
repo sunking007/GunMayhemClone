@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://bh5ckfn51nget"]
+
+[ext_resource type="Texture2D" uid="uid://c4fdnd3tlxbkl" path="res://Assets/1.png" id="1_41fj4"]
+[ext_resource type="Script" uid="uid://bc72xbbo0gvrt" path="res://JumpDust.cs" id="2_6mxik"]
+
+[sub_resource type="Curve" id="Curve_41fj4"]
+_data = [Vector2(0.009259254, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_7mr61"]
+curve = SubResource("Curve_41fj4")
+
+[sub_resource type="Curve" id="Curve_phmeq"]
+_limits = [0.0, 2.0, 0.0, 1.0]
+_data = [Vector2(0.055555552, 0.66147864), 0.0, 0.0, 0, 0, Vector2(0.6666667, 1.3463036), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_c51lr"]
+curve = SubResource("Curve_phmeq")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_nhxo5"]
+particle_flag_align_y = true
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(20, 1, 1)
+spread = 90.0
+initial_velocity_min = -150.0
+initial_velocity_max = 150.0
+gravity = Vector3(0, 0, 0)
+radial_accel_min = 300.0
+radial_accel_max = 400.0
+scale_curve = SubResource("CurveTexture_c51lr")
+alpha_curve = SubResource("CurveTexture_7mr61")
+
+[node name="JumpDust" type="GPUParticles2D" unique_id=1226120105]
+emitting = false
+amount = 5
+texture = ExtResource("1_41fj4")
+lifetime = 0.4
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_nhxo5")
+script = ExtResource("2_6mxik")

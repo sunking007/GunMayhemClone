@@ -11,6 +11,9 @@ public partial class Weapon : Sprite2D
 	[Export] public float BulletSpeed = 1200.0f; 
 	[Export] public PackedScene BulletScene; 
 
+	[ExportGroup("Physics Weapon Recoil")]
+	[Export] public float PlayerPushbackForce = 250.0f; // Force pushing the PLAYER backward
+
 	private Marker2D _muzzle;
 	private float _cooldownTimer = 0.0f;
 	private CharacterBody2D _myPlayer;
@@ -34,6 +37,13 @@ public partial class Weapon : Sprite2D
 		if (_cooldownTimer > 0.0f || BulletScene == null || _muzzle == null) return;
 
 		_cooldownTimer = FireRateCooldown;
+
+		// Inject physical recoil into the player character
+		// Firing RIGHT (1.0f) applies recoil to the LEFT (-1.0f)
+		if (_myPlayer is Player playerEntity)
+		{
+			playerEntity.ApplyWeaponRecoil(-facingDirection, PlayerPushbackForce);
+		}
 
 		Bullet newBullet = BulletScene.Instantiate<Bullet>();
 		GetTree().Root.AddChild(newBullet);

@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://c3vgfb7b37ge" path="res://Map/plt3.png" id="5_x0ka3"]
 [ext_resource type="Texture2D" uid="uid://ch58ow4v16py7" path="res://Map/plt4.png" id="6_0h7mo"]
 [ext_resource type="PackedScene" uid="uid://dswn0x4tun3g8" path="res://scene/player.tscn" id="8_x0ka3"]
+[ext_resource type="PackedScene" uid="uid://bh5ckfn51nget" path="res://scene/JumpDust.tscn" id="9_cb6ix"]
 
 [sub_resource type="SegmentShape2D" id="SegmentShape2D_ta5nu"]
 a = Vector2(251, -44)
@@ -119,10 +120,12 @@ texture = ExtResource("4_0h7mo")
 
 [node name="Player" parent="." unique_id=351431050 instance=ExtResource("8_x0ka3")]
 position = Vector2(-345, -289)
+DustEffectScene = ExtResource("9_cb6ix")
 
 [node name="Player2" parent="." unique_id=1225684747 instance=ExtResource("8_x0ka3")]
 position = Vector2(239, -235)
 InputPrefix = "p2_"
+DustEffectScene = ExtResource("9_cb6ix")
 
 [node name="DeathZone" type="Area2D" parent="." unique_id=1187218831]
 collision_layer = 0

@@ -7,6 +7,7 @@ public partial class Player : CharacterBody2D
 {
 	[ExportGroup("Setup")]
 	[Export] public string InputPrefix = "p1_"; 
+	[Export] public PackedScene DustEffectScene; 
 
 	[ExportGroup("Horizontal Movement")]
 	[Export] public float Speed = 450.0f;
@@ -32,8 +33,8 @@ public partial class Player : CharacterBody2D
 
 	private Vector2 _knockbackVelocity = Vector2.Zero;
 	private float _lastValidDirection = 1.0f;
+	private bool _wasOnFloorLastFrame = true;
 
-	// Updated fields to use Sprite2D architecture
 	private Sprite2D _body;
 	private Sprite2D _head;
 	private Marker2D _gunPivot;
@@ -41,7 +42,6 @@ public partial class Player : CharacterBody2D
 
 	public override void _Ready()
 	{
-		// Safely fetching the newly typed Sprite2D nodes
 		_body = GetNodeOrNull<Sprite2D>("Body");
 		_head = GetNodeOrNull<Sprite2D>("head");
 		_gunPivot = GetNodeOrNull<Marker2D>("GunPivot");
@@ -132,12 +132,36 @@ public partial class Player : CharacterBody2D
 
 		Velocity = velocity;
 		MoveAndSlide();
+
+		if (IsOnFloor() && !_wasOnFloorLastFrame)
+		{
+			SpawnDustCloud();
+		}
+		_wasOnFloorLastFrame = IsOnFloor();
 	}
 
+	// Used when getting hit by enemies (has vertical lift factor)
 	public void ApplyKnockback(float horizontalDirection, float force)
 	{
 		Vector2 knockbackVector = new Vector2(horizontalDirection, -0.3f).Normalized();
 		_knockbackVelocity += knockbackVector * force;
+	}
+
+	// NEW: Pure horizontal impulse exclusively for weapon recoil pushback
+	public void ApplyWeaponRecoil(float horizontalDirection, float force)
+	{
+		_knockbackVelocity.X += horizontalDirection * force;
+	}
+
+	private void SpawnDustCloud()
+	{
+		if (DustEffectScene == null) return;
+		
+		var dustInstance = DustEffectScene.Instantiate<GpuParticles2D>();
+		GetParent().AddChild(dustInstance);
+		
+		dustInstance.GlobalPosition = new Vector2(GlobalPosition.X, GlobalPosition.Y + 45.0f);
+		dustInstance.Emitting = true;
 	}
 
 	private async void DropThroughPlatform()
@@ -162,11 +186,9 @@ public partial class Player : CharacterBody2D
 	{
 		bool isFlipped = direction < 0;
 		
-		// Use FlipH for clean visual sprite mirroring
 		if (_body != null) _body.FlipH = isFlipped;
 		if (_head != null) _head.FlipH = isFlipped;
 		
-		// Scale is kept on the gun pivot so weapon position circles around the character
 		if (_gunPivot != null) _gunPivot.Scale = new Vector2(isFlipped ? -1.0f : 1.0f, 1.0f);
 	}
 }

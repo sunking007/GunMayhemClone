@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://bxig647rav0nb" path="res://Assets/player/head.png" id="4_s4jxa"]
 [ext_resource type="Texture2D" uid="uid://c4e4dba8qxhet" path="res://Assets/player/1 (3).png" id="5_2fvbb"]
 [ext_resource type="Texture2D" uid="uid://byd1w4m86x6i5" path="res://Assets/player/body.png" id="5_oh5ij"]
+[ext_resource type="Texture2D" uid="uid://b5s583u53x4uw" path="res://Assets/player/1 (7).png" id="9_2fvbb"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_epypp"]
 size = Vector2(19, 55.5)
@@ -30,18 +31,24 @@ texture = ExtResource("4_s4jxa")
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("5_oh5ij")
 
+[node name="Shadow" type="Sprite2D" parent="." unique_id=1525744954]
+position = Vector2(-1, 35)
+scale = Vector2(0.99999994, 0.99999994)
+texture = ExtResource("9_2fvbb")
+
 [node name="GunPivot" type="Marker2D" parent="." unique_id=686419401]
 
 [node name="left_hand" type="Sprite2D" parent="GunPivot" unique_id=339737104]
-position = Vector2(28, 0)
+position = Vector2(23.400002, 8.199996)
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("4_g2vtq")
 
 [node name="Weapon" type="Sprite2D" parent="GunPivot" unique_id=1569555292]
-position = Vector2(21, -21)
+position = Vector2(16.400002, -12.800004)
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("5_2fvbb")
 script = ExtResource("2_hqtel")
+KnockbackForce = 700.0
 BulletScene = ExtResource("3_sweqy")
 
 [node name="right_hand" type="Sprite2D" parent="GunPivot/Weapon" unique_id=1114296184]
