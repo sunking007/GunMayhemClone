@@ -331,4 +331,3 @@ public partial class Player : CharacterBody2D
 		if (_gunPivot != null) _gunPivot.Scale = new Vector2(isFlipped ? -1.0f : 1.0f, 1.0f);
 	}
 }
-ds

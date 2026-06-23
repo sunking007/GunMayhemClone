@@ -14,6 +14,14 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_epypp"]
 size = Vector2(19, 55.5)
 
+[sub_resource type="Animation" id="Animation_ml7e8"]
+resource_name = "ideal"
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ihjo1"]
+_data = {
+&"ideal": SubResource("Animation_ml7e8")
+}
+
 [node name="Player" type="CharacterBody2D" unique_id=351431050]
 collision_layer = 2
 script = ExtResource("1_i3pqv")
@@ -21,6 +29,7 @@ DustEffectScene = ExtResource("2_ml7e8")
 Speed = 300.0
 MaxJumpHeight = 90.0
 TimeToPeak = 0.3
+Lives = 10
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1051358368]
 position = Vector2(0, 0.25)
@@ -41,22 +50,24 @@ texture = ExtResource("9_2fvbb")
 
 [node name="GunPivot" type="Marker2D" parent="." unique_id=686419401]
 
-[node name="left_hand" type="Sprite2D" parent="GunPivot" unique_id=339737104]
-position = Vector2(23.400002, 8.199996)
-scale = Vector2(0.8, 0.8)
-texture = ExtResource("4_g2vtq")
-
-[node name="Weapon" type="Sprite2D" parent="GunPivot" unique_id=1569555292]
+[node name="Weapon" type="Node2D" parent="GunPivot" unique_id=640617895]
 position = Vector2(16.400002, -12.800004)
 scale = Vector2(0.8, 0.8)
-texture = ExtResource("5_2fvbb")
 script = ExtResource("2_hqtel")
 KnockbackForce = 700.0
 BulletScene = ExtResource("3_sweqy")
 
+[node name="left_hand" type="Sprite2D" parent="GunPivot/Weapon" unique_id=339737104]
+position = Vector2(8.75, 26.249998)
+scale = Vector2(0.99999994, 0.99999994)
+texture = ExtResource("4_g2vtq")
+
+[node name="Sprite2D" type="Sprite2D" parent="GunPivot/Weapon" unique_id=1230288752]
+scale = Vector2(0.99999994, 0.99999994)
+texture = ExtResource("5_2fvbb")
+
 [node name="right_hand" type="Sprite2D" parent="GunPivot/Weapon" unique_id=1114296184]
 position = Vector2(10, 17)
-scale = Vector2(0.8, 0.8)
 texture = ExtResource("4_g2vtq")
 
 [node name="Muzzle" type="Marker2D" parent="GunPivot/Weapon" unique_id=1181127242]
@@ -71,3 +82,6 @@ texture = ExtResource("9_ml7e8")
 [node name="HitScanner" type="RayCast2D" parent="GunPivot/Weapon" unique_id=542529815]
 target_position = Vector2(1500, 0)
 collision_mask = 2
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1101183555]
+libraries/ = SubResource("AnimationLibrary_ihjo1")
