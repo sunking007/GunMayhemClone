@@ -10,17 +10,26 @@
 [ext_resource type="Texture2D" uid="uid://byd1w4m86x6i5" path="res://Assets/player/body.png" id="5_oh5ij"]
 [ext_resource type="Texture2D" uid="uid://b5s583u53x4uw" path="res://Assets/player/1 (7).png" id="9_2fvbb"]
 [ext_resource type="Texture2D" uid="uid://dgsxa1irvy5v1" path="res://Assets/player/muzzelflash.png" id="9_ml7e8"]
+[ext_resource type="PackedScene" uid="uid://4k4o7olqf4pq" path="res://scene/animation_player.tscn" id="11_ihjo1"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_epypp"]
 size = Vector2(19, 55.5)
 
-[sub_resource type="Animation" id="Animation_ml7e8"]
-resource_name = "ideal"
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ihjo1"]
+animation = &"ideal"
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_ihjo1"]
-_data = {
-&"ideal": SubResource("Animation_ml7e8")
-}
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_dk1vr"]
+animation = &"shoot"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ihjo1"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_34jf3"]
+states/ideal/node = SubResource("AnimationNodeAnimation_ihjo1")
+states/ideal/position = Vector2(372.66666, 62.66667)
+states/shoot/node = SubResource("AnimationNodeAnimation_dk1vr")
+states/shoot/position = Vector2(582, 62.666668)
+transitions = ["Start", "ideal", SubResource("AnimationNodeStateMachineTransition_ihjo1")]
 
 [node name="Player" type="CharacterBody2D" unique_id=351431050]
 collision_layer = 2
@@ -58,16 +67,18 @@ KnockbackForce = 700.0
 BulletScene = ExtResource("3_sweqy")
 
 [node name="left_hand" type="Sprite2D" parent="GunPivot/Weapon" unique_id=339737104]
-position = Vector2(8.75, 26.249998)
+position = Vector2(-0.5000019, 32.250008)
 scale = Vector2(0.99999994, 0.99999994)
 texture = ExtResource("4_g2vtq")
 
-[node name="Sprite2D" type="Sprite2D" parent="GunPivot/Weapon" unique_id=1230288752]
+[node name="Gun" type="Sprite2D" parent="GunPivot/Weapon" unique_id=1230288752]
+position = Vector2(-34.25, 7.250006)
+rotation = 0.5960326
 scale = Vector2(0.99999994, 0.99999994)
 texture = ExtResource("5_2fvbb")
 
 [node name="right_hand" type="Sprite2D" parent="GunPivot/Weapon" unique_id=1114296184]
-position = Vector2(10, 17)
+position = Vector2(-34.25, 28.500006)
 texture = ExtResource("4_g2vtq")
 
 [node name="Muzzle" type="Marker2D" parent="GunPivot/Weapon" unique_id=1181127242]
@@ -83,5 +94,8 @@ texture = ExtResource("9_ml7e8")
 target_position = Vector2(1500, 0)
 collision_mask = 2
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1101183555]
-libraries/ = SubResource("AnimationLibrary_ihjo1")
+[node name="AnimationPlayer" parent="." unique_id=687154779 instance=ExtResource("11_ihjo1")]
+
+[node name="AnimationTree" type="AnimationTree" parent="." unique_id=1855240838]
+tree_root = SubResource("AnimationNodeStateMachine_34jf3")
+anim_player = NodePath("../AnimationPlayer")
