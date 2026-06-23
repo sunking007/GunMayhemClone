@@ -88,7 +88,7 @@ tracks/6/keys = {
 }
 
 [sub_resource type="Animation" id="Animation_ml7e8"]
-resource_name = "ideal"
+resource_name = "idle"
 length = 1.2
 loop_mode = 1
 tracks/0/type = "value"
@@ -231,7 +231,7 @@ tracks/3/keys = {
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ml7e8"]
 _data = {
 &"RESET": SubResource("Animation_opmxq"),
-&"ideal": SubResource("Animation_ml7e8"),
+&"idle": SubResource("Animation_ml7e8"),
 &"shoot": SubResource("Animation_2jphp")
 }
 

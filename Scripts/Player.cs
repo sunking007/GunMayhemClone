@@ -55,12 +55,24 @@ public partial class Player : CharacterBody2D
 	// Safety tracking variable
 	private bool _isDead = false;
 
+	// 🛠️ ANIMATION DRIVER ENGINE FIELDS
+	private AnimationPlayer _animationPlayer;
+	private bool _isShooting = false;
+
 	public override void _Ready()
 	{
 		_body = GetNodeOrNull<Sprite2D>("Body");
 		_head = GetNodeOrNull<Sprite2D>("head");
 		_gunPivot = GetNodeOrNull<Marker2D>("GunPivot");
 		_currentWeapon = GetNodeOrNull<Weapon>("GunPivot/Weapon");
+
+		// 🛠️ FETCH ANIMATIONPLAYER AND CONNECT COMPLETED SIGNAL LOOP HOOK
+		_animationPlayer = GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
+		if (_animationPlayer != null)
+		{
+			_animationPlayer.AnimationFinished += OnAnimationFinished;
+			_animationPlayer.Play("idle"); // Automatically kickstart your 1.2s looping hover
+		}
 
 		if (TargetSpawnPointNode != null)
 		{
@@ -163,6 +175,14 @@ public partial class Player : CharacterBody2D
 			{
 				_currentWeapon.PullTrigger(_lastValidDirection);
 			}
+
+			// 🛠️ SNAPPY TRACK RESTART FOR REPEATED BULLET TRIGGERS
+			if (_animationPlayer != null)
+			{
+				_isShooting = true;
+				_animationPlayer.Stop(); // Resets layout timeline instantly back to 0.0 seconds
+				_animationPlayer.Play("shoot"); // Force dynamic layout snap
+			}
 		}
 
 		Velocity = velocity;
@@ -232,6 +252,13 @@ public partial class Player : CharacterBody2D
 			{
 				UiCard.UpdateHealthDisplay(_currentHealth);
 			}
+
+			// Force back to base animation loop upon life respawning
+			if (_animationPlayer != null)
+			{
+				_isShooting = false;
+				_animationPlayer.Play("idle");
+			}
 		}
 		else
 		{
@@ -294,6 +321,23 @@ public partial class Player : CharacterBody2D
 		// Turn physics collision box back on safely
 		this.SetCollisionLayerValue(2, true);
 		this.SetCollisionMaskValue(1, true);
+
+		// Safely snap back to tracking idle configuration properties
+		if (_animationPlayer != null)
+		{
+			_isShooting = false;
+			_animationPlayer.Play("idle");
+		}
+	}
+
+	// 🛠️ SAFE SYSTEM BRIDGE INTERPOLATION BACK TO THE 1.2S HOVER LOOP
+	private void OnAnimationFinished(StringName animName)
+	{
+		if (animName == "shoot")
+		{
+			_isShooting = false;
+			_animationPlayer.Play("idle"); // Runs your 1.2s hover infinitely until next trigger click
+		}
 	}
 
 	private void SpawnDustCloud()
@@ -323,11 +367,26 @@ public partial class Player : CharacterBody2D
 		_minJumpVelocity = -Mathf.Sqrt(2.0f * _gravity * MinJumpHeight);
 	}
 
+	// 🛠️ ENHANCED FLIPPING SYSTEM ARCHITECTURE: Prevents hands and weapon markers from drifting apart
 	private void FlipCharacter(float direction)
 	{
 		bool isFlipped = direction < 0;
 		if (_body != null) _body.FlipH = isFlipped;
 		if (_head != null) _head.FlipH = isFlipped;
-		if (_gunPivot != null) _gunPivot.Scale = new Vector2(isFlipped ? -1.0f : 1.0f, 1.0f);
+
+		// Flip your GunPivot and arms layout globally by modifying its horizontal scale container
+		if (_gunPivot != null)
+		{
+			Vector2 pivotScale = _gunPivot.Scale;
+			if (isFlipped)
+			{
+				pivotScale.X = -Mathf.Abs(pivotScale.X);
+			}
+			else
+			{
+				pivotScale.X = Mathf.Abs(pivotScale.X);
+			}
+			_gunPivot.Scale = pivotScale;
+		}
 	}
 }

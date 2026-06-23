@@ -15,21 +15,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_epypp"]
 size = Vector2(19, 55.5)
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ihjo1"]
-animation = &"ideal"
-
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_dk1vr"]
-animation = &"shoot"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ihjo1"]
-advance_mode = 2
-
-[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_34jf3"]
-states/ideal/node = SubResource("AnimationNodeAnimation_ihjo1")
-states/ideal/position = Vector2(372.66666, 62.66667)
-states/shoot/node = SubResource("AnimationNodeAnimation_dk1vr")
-states/shoot/position = Vector2(582, 62.666668)
-transitions = ["Start", "ideal", SubResource("AnimationNodeStateMachineTransition_ihjo1")]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ihjo1"]
 
 [node name="Player" type="CharacterBody2D" unique_id=351431050]
 collision_layer = 2
@@ -82,7 +68,7 @@ position = Vector2(-34.25, 28.500006)
 texture = ExtResource("4_g2vtq")
 
 [node name="Muzzle" type="Marker2D" parent="GunPivot/Weapon" unique_id=1181127242]
-position = Vector2(71.25, 7.4999995)
+position = Vector2(24.499998, 8.500005)
 
 [node name="Muzzelflash" type="Sprite2D" parent="GunPivot/Weapon" unique_id=923714097]
 visible = false
@@ -95,7 +81,4 @@ target_position = Vector2(1500, 0)
 collision_mask = 2
 
 [node name="AnimationPlayer" parent="." unique_id=687154779 instance=ExtResource("11_ihjo1")]
-
-[node name="AnimationTree" type="AnimationTree" parent="." unique_id=1855240838]
-tree_root = SubResource("AnimationNodeStateMachine_34jf3")
-anim_player = NodePath("../AnimationPlayer")
+libraries/idle = SubResource("AnimationLibrary_ihjo1")
