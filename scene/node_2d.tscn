@@ -136,17 +136,16 @@ one_way_collision = true
 position = Vector2(2, 8)
 texture = ExtResource("4_0h7mo")
 
-[node name="Player" parent="." unique_id=351431050 node_paths=PackedStringArray("UiCard") instance=ExtResource("8_x0ka3")]
+[node name="Player1" parent="." unique_id=351431050 node_paths=PackedStringArray("UiCard") instance=ExtResource("8_x0ka3")]
 position = Vector2(-345, -289)
-Lives = 10
-TargetSpawnPointNode = NodePath("../P1SpawnPoint")
 UiCard = NodePath("../GameUi/HBoxContainer/PlayerUiCard")
+TargetSpawnPointNode = NodePath("../P1SpawnPoint")
 
 [node name="Player2" parent="." unique_id=1225684747 node_paths=PackedStringArray("UiCard") instance=ExtResource("8_x0ka3")]
 position = Vector2(239, -235)
 InputPrefix = "p2_"
-TargetSpawnPointNode = NodePath("../P2SpawnPoint")
 UiCard = NodePath("../GameUi/HBoxContainer/PlayerUiCard2")
+TargetSpawnPointNode = NodePath("../P2SpawnPoint")
 
 [node name="DeathZone" type="Area2D" parent="." unique_id=1187218831]
 collision_layer = 0

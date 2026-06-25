@@ -1,3 +1,4 @@
+// filepath: /run/media/sunkinglin/3899EA9A7C62F1F9/GunMayhemClone/Scripts/Player.cs
 using Godot;
 using System;
 
@@ -6,27 +7,33 @@ namespace GunMayhemClone;
 public partial class Player : CharacterBody2D
 {
 	[ExportGroup("Setup")]
-	[Export] public string InputPrefix = "p1_"; 
-	[Export] public PackedScene DustEffectScene; 
-	[Export] public PlayerUiCard UiCard; 
+	[Export] public string InputPrefix = "p1_";
+	[Export] public PackedScene DustEffectScene;
+	[Export] public PlayerUiCard UiCard;
 
 	[ExportGroup("Horizontal Movement")]
 	[Export] public float Speed = 450.0f;
 
 	[ExportGroup("Advanced Jump Settings")]
-	[Export] public float MaxJumpHeight = 150.0f; 
-	[Export] public float MinJumpHeight = 40.0f;  
-	[Export] public float TimeToPeak = 0.4f;      
-	[Export] public float TimeToFall = 0.3f;      
+	[Export] public float MaxJumpHeight = 150.0f;
+	[Export] public float MinJumpHeight = 40.0f;
+	[Export] public float TimeToPeak = 0.4f;
+	[Export] public float TimeToFall = 0.3f;
 	[Export] public int MaxJumps = 2;
 
 	[ExportGroup("Traditional Health System")]
 	[Export] public float MaxHealth = 100.0f;
 	[Export] public int Lives = 3;
-	[Export] public NodePath TargetSpawnPointNode; 
+	[Export] public NodePath TargetSpawnPointNode;
 
 	[ExportGroup("Knockback Scaling Matrix")]
-	[Export] public float KnockbackScaleFactor = 1.0f; 
+	[Export] public float KnockbackScaleFactor = 1.0f;
+
+	[ExportGroup("Sound")]
+	[Export] public AudioStream DustSound1;
+	[Export] public AudioStream DustSound2;
+	[Export] public AudioStream DustSound3;
+	[Export] public float DustVolumeDb = -2.0f;
 
 	private string _actionLeft;
 	private string _actionRight;
@@ -48,14 +55,13 @@ public partial class Player : CharacterBody2D
 	private Sprite2D _head;
 	private Marker2D _gunPivot;
 	private Weapon _currentWeapon;
+	private Label _ammoLabel;
 
 	private float _currentHealth;
 	private Node2D _spawnMarker;
-	
-	// Safety tracking variable
+
 	private bool _isDead = false;
 
-	// 🛠️ ANIMATION DRIVER ENGINE FIELDS
 	private AnimationPlayer _animationPlayer;
 	private bool _isShooting = false;
 
@@ -65,13 +71,13 @@ public partial class Player : CharacterBody2D
 		_head = GetNodeOrNull<Sprite2D>("head");
 		_gunPivot = GetNodeOrNull<Marker2D>("GunPivot");
 		_currentWeapon = GetNodeOrNull<Weapon>("GunPivot/Weapon");
+		_ammoLabel = GetNodeOrNull<Label>("AmmoLabel");
 
-		// 🛠️ FETCH ANIMATIONPLAYER AND CONNECT COMPLETED SIGNAL LOOP HOOK
 		_animationPlayer = GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
 		if (_animationPlayer != null)
 		{
 			_animationPlayer.AnimationFinished += OnAnimationFinished;
-			_animationPlayer.Play("idle"); // Automatically kickstart your 1.2s looping hover
+			_animationPlayer.Play("idle");
 		}
 
 		if (TargetSpawnPointNode != null)
@@ -86,7 +92,7 @@ public partial class Player : CharacterBody2D
 		_actionShoot = InputPrefix + "shoot";
 
 		CalculateJumpParameters();
-		this.AddToGroup("players");
+		AddToGroup("players");
 
 		_currentHealth = MaxHealth;
 
@@ -99,11 +105,20 @@ public partial class Player : CharacterBody2D
 		{
 			UiCard.SetupCard(Name, null, MaxHealth, Lives);
 		}
+
+		if (_currentWeapon != null)
+		{
+			_currentWeapon.AmmoChanged += OnWeaponAmmoChanged;
+			UpdateAmmoDisplay(_currentWeapon.AmmoInClip, _currentWeapon.ClipCapacity, _currentWeapon.IsReloading);
+		}
+		else
+		{
+			UpdateAmmoDisplay(0, 0, false);
+		}
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		// Completely stop processing inputs and gravity loops if the player is dead
 		if (_isDead) return;
 
 		Vector2 velocity = Velocity;
@@ -115,7 +130,7 @@ public partial class Player : CharacterBody2D
 		}
 		else
 		{
-			_jumpCount = 0; 
+			_jumpCount = 0;
 		}
 
 		if (Input.IsActionJustPressed(_actionJump) && (IsOnFloor() || _jumpCount < MaxJumps))
@@ -162,26 +177,22 @@ public partial class Player : CharacterBody2D
 		_knockbackVelocity.Y = Mathf.MoveToward(_knockbackVelocity.Y, 0.0f, 1200.0f * (float)delta);
 
 		velocity.X = targetWalkingVelocity + _knockbackVelocity.X;
-		
+
 		if (Mathf.Abs(_knockbackVelocity.Y) > 0.1f)
 		{
 			velocity.Y += _knockbackVelocity.Y;
 			_knockbackVelocity.Y = 0;
 		}
 
-		if (Input.IsActionPressed(_actionShoot))
+		if (Input.IsActionPressed(_actionShoot) && _currentWeapon != null)
 		{
-			if (_currentWeapon != null)
-			{
-				_currentWeapon.PullTrigger(_lastValidDirection);
-			}
+			_currentWeapon.PullTrigger(_lastValidDirection);
 
-			// 🛠️ SNAPPY TRACK RESTART FOR REPEATED BULLET TRIGGERS
 			if (_animationPlayer != null)
 			{
 				_isShooting = true;
-				_animationPlayer.Stop(); // Resets layout timeline instantly back to 0.0 seconds
-				_animationPlayer.Play("shoot"); // Force dynamic layout snap
+				_animationPlayer.Stop();
+				_animationPlayer.Play("shoot");
 			}
 		}
 
@@ -192,7 +203,28 @@ public partial class Player : CharacterBody2D
 		{
 			SpawnDustCloud();
 		}
+
 		_wasOnFloorLastFrame = IsOnFloor();
+	}
+
+	private void OnWeaponAmmoChanged(int ammo, int clipSize, bool isReloading)
+	{
+		UpdateAmmoDisplay(ammo, clipSize, isReloading);
+	}
+
+	private void UpdateAmmoDisplay(int ammo, int clipSize, bool isReloading)
+	{
+		if (_ammoLabel == null) return;
+
+		// show only the current ammo count (no "Ammo:" prefix)
+		if (isReloading)
+		{
+			_ammoLabel.Text = "0";
+		}
+		else
+		{
+			_ammoLabel.Text = ammo.ToString();
+		}
 	}
 
 	public void ApplyKnockback(float horizontalDirection, float force)
@@ -243,17 +275,16 @@ public partial class Player : CharacterBody2D
 		if (Lives > 0)
 		{
 			if (_spawnMarker != null) GlobalPosition = _spawnMarker.GlobalPosition;
-			
+
 			Velocity = Vector2.Zero;
 			_knockbackVelocity = Vector2.Zero;
-			_currentHealth = MaxHealth; 
+			_currentHealth = MaxHealth;
 
 			if (UiCard != null)
 			{
 				UiCard.UpdateHealthDisplay(_currentHealth);
 			}
 
-			// Force back to base animation loop upon life respawning
 			if (_animationPlayer != null)
 			{
 				_isShooting = false;
@@ -267,7 +298,6 @@ public partial class Player : CharacterBody2D
 		}
 	}
 
-	// 🛠️ HOOK FOR DEATHZONE: Subtracts a single life and disables collisions to stop the double-hit bug
 	public bool ProcessFallingLifePenalty()
 	{
 		if (_isDead) return Lives > 0;
@@ -286,8 +316,7 @@ public partial class Player : CharacterBody2D
 			_currentHealth = MaxHealth;
 			Velocity = Vector2.Zero;
 			_knockbackVelocity = Vector2.Zero;
-			
-			// Force physical server collision box to turn off instantly
+
 			this.SetCollisionLayerValue(2, false);
 			this.SetCollisionMaskValue(1, false);
 
@@ -301,28 +330,25 @@ public partial class Player : CharacterBody2D
 				UiCard.UpdateHealthDisplay(_currentHealth);
 			}
 
-			return true; 
+			return true;
 		}
 		else
 		{
 			GD.Print($"{Name} out of lives! Eliminating player.");
-			QueueFree(); 
-			return false; 
+			QueueFree();
+			return false;
 		}
 	}
 
-	// Re-enables input movement and physics collision layers after the timer delay ends
 	public void CompleteRespawn()
 	{
 		_isDead = false;
 		Velocity = Vector2.Zero;
 		_knockbackVelocity = Vector2.Zero;
 
-		// Turn physics collision box back on safely
 		this.SetCollisionLayerValue(2, true);
 		this.SetCollisionMaskValue(1, true);
 
-		// Safely snap back to tracking idle configuration properties
 		if (_animationPlayer != null)
 		{
 			_isShooting = false;
@@ -330,13 +356,12 @@ public partial class Player : CharacterBody2D
 		}
 	}
 
-	// 🛠️ SAFE SYSTEM BRIDGE INTERPOLATION BACK TO THE 1.2S HOVER LOOP
 	private void OnAnimationFinished(StringName animName)
 	{
 		if (animName == "shoot")
 		{
 			_isShooting = false;
-			_animationPlayer.Play("idle"); // Runs your 1.2s hover infinitely until next trigger click
+			_animationPlayer.Play("idle");
 		}
 	}
 
@@ -347,6 +372,35 @@ public partial class Player : CharacterBody2D
 		GetParent().AddChild(dustInstance);
 		dustInstance.GlobalPosition = new Vector2(GlobalPosition.X, GlobalPosition.Y + 45.0f);
 		dustInstance.Emitting = true;
+
+		// Play one of the three dust sounds at random only when dust spawn happens
+		AudioStream chosen = null;
+		float vol = DustVolumeDb;
+		float r = GD.Randf();
+		if (r < 0.34f) chosen = DustSound1;
+		else if (r < 0.67f) chosen = DustSound2;
+		else chosen = DustSound3;
+
+		if (chosen != null)
+		{
+			PlaySoundAtPosition(chosen, dustInstance.GlobalPosition, vol);
+		}
+	}
+
+	private async void PlaySoundAtPosition(AudioStream stream, Vector2 globalPos, float volumeDb = 0.0f)
+	{
+		if (stream == null) return;
+		var player = new AudioStreamPlayer2D();
+		player.Stream = stream;
+		player.GlobalPosition = globalPos;
+		player.VolumeDb = volumeDb;
+		GetTree().Root.AddChild(player);
+		player.Play();
+		while (player.Playing)
+		{
+			await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+		}
+		player.QueueFree();
 	}
 
 	private async void DropThroughPlatform()
@@ -367,25 +421,16 @@ public partial class Player : CharacterBody2D
 		_minJumpVelocity = -Mathf.Sqrt(2.0f * _gravity * MinJumpHeight);
 	}
 
-	// 🛠️ ENHANCED FLIPPING SYSTEM ARCHITECTURE: Prevents hands and weapon markers from drifting apart
 	private void FlipCharacter(float direction)
 	{
 		bool isFlipped = direction < 0;
 		if (_body != null) _body.FlipH = isFlipped;
 		if (_head != null) _head.FlipH = isFlipped;
 
-		// Flip your GunPivot and arms layout globally by modifying its horizontal scale container
 		if (_gunPivot != null)
 		{
 			Vector2 pivotScale = _gunPivot.Scale;
-			if (isFlipped)
-			{
-				pivotScale.X = -Mathf.Abs(pivotScale.X);
-			}
-			else
-			{
-				pivotScale.X = Mathf.Abs(pivotScale.X);
-			}
+			pivotScale.X = isFlipped ? -Mathf.Abs(pivotScale.X) : Mathf.Abs(pivotScale.X);
 			_gunPivot.Scale = pivotScale;
 		}
 	}
